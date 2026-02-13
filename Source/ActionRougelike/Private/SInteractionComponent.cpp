@@ -51,20 +51,44 @@ void USInteractionComponent::PrimaryInteract()
 
 	FVector End = EyeLocation + (EyeRotation.Vector() * 1000);//视点位置加上视点旋转的向量乘以1000，得到一个远点位置
 
-	FHitResult Hit;//碰撞结果
-	GetWorld()->LineTraceSingleByObjectType(Hit, EyeLocation, End, ObjectQueryParams);//从视点位置到远点位置进行线性碰撞检测，检测对象类型为动态物体
+	//第一种碰撞检测方法
+	//FHitResult Hit;//碰撞结果
+	//bool bBlockingHit = GetWorld()->LineTraceSingleByObjectType(Hit, EyeLocation, End, ObjectQueryParams);//在世界中进行一条线性碰撞检测，起点为视点位置，终点为远点位置，使用查询参数，结果存储在Hit中，返回是否有碰撞
 
-	AActor* HitActor = Hit.GetActor();
-	if (HitActor)//如果碰撞结果中有一个演员
+
+	//第二种碰撞检测方法
+	TArray<FHitResult> Hits;//碰撞结果数组
+
+	float Radius = 30.0f;//碰撞半径
+
+	FCollisionShape Shape;//碰撞形状
+	Shape.SetSphere(Radius);//设置碰撞形状为一个半径为30的球体
+
+	bool bBlockingHit = GetWorld()->SweepMultiByObjectType(Hits, EyeLocation, End, FQuat::Identity, ObjectQueryParams, Shape);//在世界中进行一个球形碰撞检测，起点为视点位置，终点为远点位置，使用查询参数，碰撞形状为一个半径为30的球体，结果存储在Hits数组中
+
+	FColor LineColor = bBlockingHit ? FColor::Green : FColor::Red;//如果有碰撞，线的颜色为绿色，否则为红色
+
+	for (FHitResult Hit : Hits)//遍历碰撞结果数组
 	{
-		if (HitActor->Implements<USGameplayInterface>())
+		AActor* HitActor = Hit.GetActor();
+		if (HitActor)//如果碰撞结果中有一个演员
 		{
-			APawn* MyPawn = Cast<APawn>(MyOwner);//将拥有者转换为一个Pawn
+			if (HitActor->Implements<USGameplayInterface>())
+			{
+				APawn* MyPawn = Cast<APawn>(MyOwner);//将拥有者转换为一个Pawn
 
-			ISGameplayInterface::Execute_Interact(HitActor, MyPawn);//调用碰撞演员的交互函数，传入拥有者作为参数
+				ISGameplayInterface::Execute_Interact(HitActor, MyPawn);//调用碰撞演员的交互函数，传入拥有者作为参数
+				break;//如果有一个演员被交互了，跳出循环
+			}
 		}
+
+		DrawDebugSphere(GetWorld(), Hit.ImpactPoint, Radius, 32, LineColor, false, 2.0f);//在世界中绘制一个球体，位置为碰撞点，半径为30，分段数为32，颜色为LineColor，不持久化，持续2秒
 	}
 
-	DrawDebugLine(GetWorld(), EyeLocation, End, FColor::Red, false, 2.0f, 0, 2.0f);//在世界中绘制一条从视点位置到远点位置的红色线，持续2秒，线宽为2.0f
+
+
+	DrawDebugLine(GetWorld(), EyeLocation, End, LineColor, false, 2.0f, 0, 2.0f);//在世界中绘制一条线，起点为视点位置，终点为远点位置，颜色为LineColor，不持久化，持续2秒，线宽为2.0f
+
+
 
 }

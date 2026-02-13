@@ -89,6 +89,15 @@ void ASCharacter::MoveRight(float Value)
 
 void ASCharacter::PrimaryAttack()
 {
+	PlayAnimMontage(AttackAnim);//播放攻击动画
+
+	GetWorldTimerManager().SetTimer(TimerHandle_PrimaryAttack, this, &ASCharacter::PrimaryAttack_TimeElapsed, 0.2f);//设置一个定时器，在0.2秒后调用PrimaryAttack_TimeElapsed函数
+
+}
+
+void ASCharacter::PrimaryAttack_TimeElapsed()//这个函数在攻击动画的0.2秒时被调用，可以在这里添加攻击逻辑，比如造成伤害、播放特效等
+{
+
 	FVector HandLocation = GetMesh()->GetSocketLocation("Muzzle_01");//获取发射点位置
 
 	FTransform SpawnTM = FTransform(GetControlRotation(), HandLocation);//发射点位置和朝向
@@ -97,6 +106,7 @@ void ASCharacter::PrimaryAttack()
 	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;//忽略碰撞直接生成
 
 	GetWorld()->SpawnActor<AActor>(ProjectileClass, SpawnTM, SpawnParams);
+	
 }
 
 void ASCharacter::PrimaryInteract()

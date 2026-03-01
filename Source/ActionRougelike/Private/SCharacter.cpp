@@ -104,6 +104,7 @@ void ASCharacter::PrimaryAttack_TimeElapsed()//这个函数在攻击动画的0.2
 
 	FActorSpawnParameters SpawnParams;//生成参数
 	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;//忽略碰撞直接生成
+	SpawnParams.Instigator = this;//设置生成者为自己
 
 	GetWorld()->SpawnActor<AActor>(ProjectileClass, SpawnTM, SpawnParams);
 	

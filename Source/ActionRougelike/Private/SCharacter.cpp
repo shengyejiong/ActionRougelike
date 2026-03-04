@@ -98,15 +98,20 @@ void ASCharacter::PrimaryAttack()
 void ASCharacter::PrimaryAttack_TimeElapsed()//这个函数在攻击动画的0.2秒时被调用，可以在这里添加攻击逻辑，比如造成伤害、播放特效等
 {
 
-	FVector HandLocation = GetMesh()->GetSocketLocation("Muzzle_01");//获取发射点位置
+	if (ensure(ProjectileClass)) //ensure是一个宏，用于检查条件是否为真，如果不为真则会输出错误信息并中断程序，但在发布版本中会被忽略，所以可以安全地使用来检查指针是否有效
+	{
 
-	FTransform SpawnTM = FTransform(GetControlRotation(), HandLocation);//发射点位置和朝向
+		FVector HandLocation = GetMesh()->GetSocketLocation("Muzzle_01");//获取发射点位置
 
-	FActorSpawnParameters SpawnParams;//生成参数
-	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;//忽略碰撞直接生成
-	SpawnParams.Instigator = this;//设置生成者为自己
+		FTransform SpawnTM = FTransform(GetControlRotation(), HandLocation);//发射点位置和朝向
 
-	GetWorld()->SpawnActor<AActor>(ProjectileClass, SpawnTM, SpawnParams);
+		FActorSpawnParameters SpawnParams;//生成参数
+		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;//忽略碰撞直接生成
+		SpawnParams.Instigator = this;//设置生成者为自己
+
+		GetWorld()->SpawnActor<AActor>(ProjectileClass, SpawnTM, SpawnParams);
+	}
+
 	
 }
 

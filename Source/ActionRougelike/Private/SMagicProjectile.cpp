@@ -5,6 +5,8 @@
 #include "Components/SphereComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Particles/ParticleSystemComponent.h"
+#include "SAttributeComponent.h"
+
 
 // Sets default values
 ASMagicProjectile::ASMagicProjectile()
@@ -23,6 +25,7 @@ ASMagicProjectile::ASMagicProjectile()
 		第二种碰撞设置:使用预设的碰撞配置文件
 	*/
 	SphereComp->SetCollisionProfileName("Projectile");
+	SphereComp->OnComponentBeginOverlap.AddDynamic(this, &ASMagicProjectile::OnActorOverlap);//绑定重叠事件
 	RootComponent = SphereComp;
 
 	EffectComp = CreateDefaultSubobject<UParticleSystemComponent>("EffectComp");
@@ -34,6 +37,20 @@ ASMagicProjectile::ASMagicProjectile()
 	MovementComp->bInitialVelocityInLocalSpace = true;
 
 
+}
+
+void ASMagicProjectile::OnActorOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	if (OtherActor && OtherActor != GetInstigator())//确保碰撞对象存在且不是发射者自己
+	{
+		USAttributeComponent* AttributeComp = Cast<USAttributeComponent>(OtherActor->GetComponentByClass(USAttributeComponent::StaticClass()));//获取碰撞对象的属性组件
+		if (AttributeComp)
+		{
+			AttributeComp->ApplyHealthChange(-20.0f);//对碰撞对象造成20点伤害
+
+			Destroy();
+		}
+	}
 }
 
 // Called when the game starts or when spawned

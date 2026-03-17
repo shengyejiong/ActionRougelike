@@ -10,6 +10,11 @@ USAttributeComponent::USAttributeComponent()
 	Health = 100;
 }
 
+bool USAttributeComponent::IsAlive() const//这里const表示这个函数不会修改类的成员变量，可以在任何情况下调用，包括常量对象和非常量对象
+{
+	return Health > 0.0f;
+}
+
 
 bool USAttributeComponent::ApplyHealthChange(float Delta)
 {

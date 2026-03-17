@@ -40,10 +40,13 @@ protected:
 
 public:	
 
+	UFUNCTION(BlueprintCallable)
+	bool IsAlive() const;
+
 	UPROPERTY(BlueprintAssignable)// 这个属性可以在蓝图中绑定事件
 	FOnHealthChanged OnHealthChanged;
 
-	UFUNCTION(BLueprintCallable, Category = "Attributes")
+	UFUNCTION(BlueprintCallable, Category = "Attributes")
 	bool ApplyHealthChange(float Delta);
 
 

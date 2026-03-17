@@ -35,6 +35,13 @@ ASCharacter::ASCharacter()
 
 }
 
+void ASCharacter::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
+
+	AttributeComp->OnHealthChanged.AddDynamic(this, &ASCharacter::OnHealthChanged);//给属性组件添加监听，当属性发生变化时会调用OnHealthChanged函数
+}
+
 // Called when the game starts or when spawned
 void ASCharacter::BeginPlay()
 {
@@ -187,3 +194,14 @@ void ASCharacter::PrimaryInteract()
 	}
 	
 }
+
+void ASCharacter::OnHealthChanged(AActor* InstigatorActor, USAttributeComponent* OwningComp, float NewHealth, float Delta)
+{
+	if (NewHealth <= 0.0f && Delta < 0.0f)
+	{
+		APlayerController* PC = Cast<APlayerController>(GetController());//获取控制器并转换为玩家控制器
+		DisableInput(PC);//禁用输入，这样角色就无法再移动或者攻击了
+	}
+}
+
+

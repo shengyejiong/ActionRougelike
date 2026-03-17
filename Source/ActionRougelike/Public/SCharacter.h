@@ -76,6 +76,11 @@ protected:
 
 	void SpawnProjectile(TSubclassOf<AActor> ClassToSpawn);
 
+	UFUNCTION()
+	void OnHealthChanged(AActor* InstigatorActor, USAttributeComponent* OwningComp, float NewHealth, float Delta);
+
+	virtual void PostInitializeComponents() override;//这个函数是在组件初始化完成后被调用的，可以在这里添加一些逻辑，比如监听属性变化等
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;

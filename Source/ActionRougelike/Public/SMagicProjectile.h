@@ -19,6 +19,9 @@ public:
 	// Sets default values for this actor's properties
 	ASMagicProjectile();
 
+	UPROPERTY(EditAnywhere)
+	float Damage = -20.0f;
+
 protected:
 
 	UFUNCTION()

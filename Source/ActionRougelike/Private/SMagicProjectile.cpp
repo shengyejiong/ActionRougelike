@@ -46,7 +46,7 @@ void ASMagicProjectile::OnActorOverlap(UPrimitiveComponent* OverlappedComponent,
 		USAttributeComponent* AttributeComp = Cast<USAttributeComponent>(OtherActor->GetComponentByClass(USAttributeComponent::StaticClass()));//获取碰撞对象的属性组件
 		if (AttributeComp)
 		{
-			AttributeComp->ApplyHealthChange(-20.0f);//对碰撞对象造成20点伤害
+			AttributeComp->ApplyHealthChange(Damage);//对碰撞对象造成20点伤害
 
 			Destroy();
 		}

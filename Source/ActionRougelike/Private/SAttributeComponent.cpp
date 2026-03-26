@@ -6,8 +6,8 @@
 // Sets default values for this component's properties
 USAttributeComponent::USAttributeComponent()
 {
-
 	Health = 100;
+	HealthMax = Health;
 }
 
 bool USAttributeComponent::IsAlive() const//ÕâÀïconst±íÊ¾Õâ¸öº¯Êı²»»áĞŞ¸ÄÀàµÄ³ÉÔ±±äÁ¿£¬¿ÉÒÔÔÚÈÎºÎÇé¿öÏÂµ÷ÓÃ£¬°üÀ¨³£Á¿¶ÔÏóºÍ·Ç³£Á¿¶ÔÏó
@@ -15,14 +15,27 @@ bool USAttributeComponent::IsAlive() const//ÕâÀïconst±íÊ¾Õâ¸öº¯Êı²»»áĞŞ¸ÄÀàµÄ³ÉÔ
 	return Health > 0.0f;
 }
 
+bool USAttributeComponent::IsFullHealth() const
+{
+	return Health == HealthMax;
+}
+
+float USAttributeComponent::GetHealthMax() const
+{
+	return HealthMax;
+}
 
 bool USAttributeComponent::ApplyHealthChange(float Delta)
 {
-	Health += Delta;
+	float OldHealth = Health;
 
-	OnHealthChanged.Broadcast(nullptr, this, Health, Delta);// ÕâÀïµÄBroadcastº¯Êı»áµ÷ÓÃËùÓĞ°ó¶¨µ½OnHealthChangedÎ¯ÍĞµÄº¯Êı£¬²ÎÊı·Ö±ğÊÇ£ºÔì³ÉÉËº¦µÄActor£¨ÕâÀïÔİÊ±´«Èënullptr£©£¬ÊôĞÔ×é¼ş±¾Éí£¬µ±Ç°ÑªÁ¿ºÍÑªÁ¿±ä»¯Öµ
+	Health = FMath::Clamp(Health + Delta, 0.0f, HealthMax);// FMath::Clampº¯Êı»á½«Health + DeltaµÄ½á¹ûÏŞÖÆÔÚ0.0fºÍHealthMaxÖ®¼ä£¬È·±£ÑªÁ¿²»»á³¬¹ı×î´óÖµ»òÕß±ä³É¸ºÊı
 
-	return true;
+	float ActualDelta = Health - OldHealth;// ¼ÆËãÊµ¼ÊµÄÑªÁ¿±ä»¯Öµ£¬¿ÉÄÜ»áÒòÎªClampº¯ÊıµÄÏŞÖÆ¶øÓë´«ÈëµÄDeltaÖµ²»Í¬
+
+	OnHealthChanged.Broadcast(nullptr, this, Health, ActualDelta);// ´¥·¢ÑªÁ¿±ä»¯µÄÊÂ¼ş£¬²ÎÊı·Ö±ğÊÇ£ºÔì³ÉÉËº¦µÄActor£¨ÕâÀïÔİÊ±´«Èënullptr£©£¬ÊôĞÔ×é¼ş±¾Éí£¬µ±Ç°ÑªÁ¿ºÍÊµ¼ÊµÄÑªÁ¿±ä»¯Öµ
+
+	return ActualDelta != 0;// ·µ»ØÊÇ·ñÓĞÊµ¼ÊµÄÑªÁ¿±ä»¯£¬Èç¹ûActualDelta²»µÈÓÚ0£¬ËµÃ÷ÑªÁ¿·¢ÉúÁË±ä»¯£¬·µ»Øtrue£»·ñÔò·µ»Øfalse
 }
 
 

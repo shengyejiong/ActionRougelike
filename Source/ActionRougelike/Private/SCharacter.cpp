@@ -11,6 +11,8 @@
 #include "Misc/AssertionMacros.h"
 #include "Math/RotationMatrix.h"          // 用于 FRotationMatrix 和 MakeFromX
 
+#include "Kismet/GameplayStatics.h"
+
 
 // Sets default values
 ASCharacter::ASCharacter()
@@ -32,6 +34,10 @@ ASCharacter::ASCharacter()
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 
 	bUseControllerRotationYaw = false;
+
+	AttackAnimDelay = 0.2f;
+	TimeToHitParamName = "TimeToHit";
+	HandSocketName = "Muzzle_01";
 
 }
 
@@ -143,13 +149,20 @@ void ASCharacter::Dash_TimeElapsed()
 	SpawnProjectile(DashProjectileClass);//生成冲刺投射物
 }
 
+void ASCharacter::StartAttackEffects()
+{
+	PlayAnimMontage(AttackAnim);//播放攻击动画
+
+	UGameplayStatics::SpawnEmitterAttached(CastingEffect, GetMesh(), HandSocketName, FVector::ZeroVector, FRotator::ZeroRotator, EAttachLocation::SnapToTarget);//在角色的手部位置生成一个特效，特效的位置和旋转都设置为零向量，这样特效就会跟随角色的手部移动和旋转
+}
+
 
 
 void ASCharacter::SpawnProjectile(TSubclassOf <AActor> ClassToSpawn)
 {
 	if (ensureAlways(ClassToSpawn))//检查要生成的类是否有效，如果无效则输出错误信息并中断程序，但在发布版本中会被忽略，所以可以安全地使用来检查类是否有效
 	{
-		FVector HandleLocation = GetMesh()->GetSocketLocation("Muzzle_01");//获取发射点位置
+		FVector HandleLocation = GetMesh()->GetSocketLocation(HandSocketName);//获取发射点位置
 
 		FActorSpawnParameters SpawnParams;//生成参数
 		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;//忽略碰撞直接生成

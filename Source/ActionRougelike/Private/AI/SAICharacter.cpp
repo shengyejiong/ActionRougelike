@@ -6,6 +6,8 @@
 #include "AIController.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "DrawDebugHelpers.h"
+#include "SAttributeComponent.h"
+#include "BrainComponent.h"
 
 
 
@@ -14,13 +16,45 @@ ASAICharacter::ASAICharacter()
 
 	PawnSensingComp = CreateDefaultSubobject<UPawnSensingComponent>("PawnSensingComp");
 
+	AttributeComp = CreateDefaultSubobject<USAttributeComponent>("AttributeComp");
+
+	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
+
 }
+
 
 void ASAICharacter::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
 
 	PawnSensingComp->OnSeePawn.AddDynamic(this, &ASAICharacter::OnPawnSeen);//这个函数是一个事件绑定函数，当PawnSensingComp组件感知到一个Pawn时，会调用OnPawnSeen函数。
+	AttributeComp->OnHealthChanged.AddDynamic(this, &ASAICharacter::OnHealthChanged);//给属性组件添加监听，当属性发生变化时会调用OnHealthChanged函数
+}
+
+void ASAICharacter::OnHealthChanged(AActor* InstigatorActor, USAttributeComponent* OwningComp, float NewHealth, float Delta)
+{
+	if (Delta < 0.0f)
+	{
+
+
+		if (NewHealth <= 0.0f)
+		{
+			//停止BT
+			AAIController* AIC = Cast<AAIController>(GetController());
+			if (AIC)
+			{
+				AIC->GetBrainComponent()->StopLogic("Killed"); //大脑组件其实就是行为树组件
+			}
+
+			//ragdoll
+			GetMesh()->SetAllBodiesSimulatePhysics(true);//这个函数是将角色的所有骨骼设置为模拟物理，这样角色就会变成一个布娃娃，受到物理引擎的影响，可以被推开、倒地等。
+			GetMesh()->SetCollisionProfileName("Ragdoll");//这个函数是将角色的碰撞配置文件设置为"Ragdoll"，这样角色就会使用布娃娃的碰撞设置，可以与其他物体发生碰撞并产生物理反应。
+
+
+			//设置生命周期
+			SetLifeSpan(10.0f);
+		}
+	}
 }
 
 void ASAICharacter::OnPawnSeen(APawn* Pawn)

@@ -30,6 +30,15 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components");
 	UParticleSystemComponent* EffectComp;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Components");
+	UAudioComponent* AudioComp;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Effects");
+	float ImpactShakeInnerRadius;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Effects");
+	float ImpactShakeOuterRadius;
+
 
 	//'virtual'用‘virtual’修饰函数，表示该函数可以被子类重写。当一个函数被声明为虚函数时，调用该函数时会根据对象的实际类型来决定调用哪个版本的函数，而不是根据指针或引用的类型。这种机制称为动态绑定或运行时多态。
 	//这个函数的参数为一个指向UPrimitiveComponent的指针，表示发生碰撞的组件；一个指向AActor的指针，表示与之发生碰撞的另一个演员；一个指向UPrimitiveComponent的指针，表示另一个演员的组件；一个FVector类型的参数，表示碰撞时的法线冲量；一个FHitResult类型的参数，包含了碰撞的详细信息。

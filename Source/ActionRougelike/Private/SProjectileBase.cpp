@@ -6,6 +6,7 @@
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Particles/ParticleSystemComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "Components/AudioComponent.h"
 
 // Sets default values
 ASProjectileBase::ASProjectileBase()
@@ -19,11 +20,17 @@ ASProjectileBase::ASProjectileBase()
 	EffectComp = CreateDefaultSubobject<UParticleSystemComponent>("EffectComp");
 	EffectComp->SetupAttachment(RootComponent);
 
+	AudioComp = CreateDefaultSubobject<UAudioComponent>("AudioComp");
+	AudioComp->SetupAttachment(RootComponent);
+
 	MoveComp = CreateDefaultSubobject<UProjectileMovementComponent>("ProjectileMovement");
 	MoveComp->bRotationFollowsVelocity = true;//设置投射物的旋转跟随其速度方向
 	MoveComp->bInitialVelocityInLocalSpace = true;//设置投射物的初始速度在局部空间中
 	MoveComp->ProjectileGravityScale = 0.0f;//设置投射物的重力缩放为0，表示不受重力影响
 	MoveComp->InitialSpeed = 8000;
+
+	ImpactShakeInnerRadius = 0.0f;
+	ImpactShakeOuterRadius = 1500.0f;
 
 
 }

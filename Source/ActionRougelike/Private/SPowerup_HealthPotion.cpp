@@ -28,7 +28,7 @@ void ASPowerup_HealthPotion::Interact_Implementation(APawn* InstigatorPawn)
 	if (ensure(AttributeComp) && !AttributeComp->IsFullHealth())//如果玩家的生命值组件存在，并且玩家的生命值没有满，我们就可以增加玩家的生命值。
 	{
 
-		if (AttributeComp->ApplyHealthChange(AttributeComp->GetHealthMax()))//我们调用玩家的生命值组件的ApplyHealthChange函数来增加玩家的生命值，增加的数值是玩家的最大生命值，这样就可以让玩家的生命值恢复到满。
+		if (AttributeComp->ApplyHealthChange(this, AttributeComp->GetHealthMax()))//我们调用玩家的生命值组件的ApplyHealthChange函数来增加玩家的生命值，增加的数值是玩家的最大生命值，这样就可以让玩家的生命值恢复到满。
 		{
 			HideAndCooldownPowerup();
 		}

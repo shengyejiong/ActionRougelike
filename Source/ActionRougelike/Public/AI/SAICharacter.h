@@ -20,6 +20,9 @@ public:
 
 protected:
 
+	void SetTargetActor(AActor* NewTarget);//这个函数是用来设置目标角色的，可以在行为树中调用这个函数来更新AI角色的目标。
+
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	USAttributeComponent* AttributeComp;
 

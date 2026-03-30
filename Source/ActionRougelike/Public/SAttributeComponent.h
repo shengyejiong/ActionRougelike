@@ -15,6 +15,13 @@ class ACTIONROUGELIKE_API USAttributeComponent : public UActorComponent
 	GENERATED_BODY()
 
 public:	
+
+	UFUNCTION(BlueprintCallable, Category = "Attributes")
+	static USAttributeComponent* GetAttributes(AActor* FromActor);// 定义一个静态函数，用于从一个Actor中获取属性组件，如果该Actor没有属性组件，则返回nullptr
+
+	UFUNCTION(BlueprintCallable, Category = "Attributes", meta = (DisplayName = "IsAlive"))
+	static bool IsActorAlive(AActor* Actor);// 定义一个静态函数，用于判断一个Actor是否存活，如果该Actor没有属性组件或者血量小于等于0，则返回false；否则返回true
+
 	// Sets default values for this component's properties
 	USAttributeComponent();
 
@@ -56,7 +63,7 @@ public:
 	FOnHealthChanged OnHealthChanged;
 
 	UFUNCTION(BlueprintCallable, Category = "Attributes")
-	bool ApplyHealthChange(float Delta);
+	bool ApplyHealthChange(AActor* InstigatorActor, float Delta);
 
 
 

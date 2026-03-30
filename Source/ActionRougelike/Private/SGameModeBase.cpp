@@ -33,7 +33,7 @@ void ASGameModeBase::SpawnBotTimerElapsed()
 	{
 		ASAICharacter* Bot = *It;
 
-		USAttributeComponent* AttributeComp = Cast<USAttributeComponent>(Bot->GetComponentByClass(USAttributeComponent::StaticClass()));//这个函数的意思是获取敌人身上的属性组件，也就是存储敌人生命值的组件
+		USAttributeComponent* AttributeComp = USAttributeComponent::GetAttributes(Bot);//这个函数的意思是获取敌人身上的属性组件，也就是存储敌人生命值的组件
 		if (ensure(AttributeComp) && AttributeComp->IsAlive())
 		{
 			NrOfAliveBots++;

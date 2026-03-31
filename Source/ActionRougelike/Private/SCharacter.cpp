@@ -210,6 +210,11 @@ void ASCharacter::PrimaryInteract()
 
 void ASCharacter::OnHealthChanged(AActor* InstigatorActor, USAttributeComponent* OwningComp, float NewHealth, float Delta)
 {
+	if (Delta < 0.0f)
+	{
+		GetMesh()->SetScalarParameterValueOnMaterials(TimeToHitParamName, GetWorld()->TimeSeconds);//如果血量减少了，就在角色的材质上设置一个参数，这个参数的值是当前的世界时间，这样就可以在材质中根据这个参数来实现一些效果，比如闪红等
+	}
+
 	if (NewHealth <= 0.0f && Delta < 0.0f)
 	{
 		APlayerController* PC = Cast<APlayerController>(GetController());//获取控制器并转换为玩家控制器

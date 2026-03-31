@@ -20,6 +20,13 @@ class ACTIONROUGELIKE_API USBTTask_RangedAttack : public UBTTaskNode
 protected:
 
 	UPROPERTY(EditAnywhere, Category = "AI")
+	float MaxBulletSpread;//这个属性表示子弹的最大散布范围，可以在编辑器中设置为一个浮点数，表示子弹的散布角度或距离。
+
+	UPROPERTY(EditAnywhere, Category = "AI")
 	TSubclassOf<AActor> ProjectileClass;//这个属性是一个类的子类，表示要生成的子弹的类型，可以在编辑器中设置为具体的子弹类。
 
+
+public:
+
+	USBTTask_RangedAttack();
 };

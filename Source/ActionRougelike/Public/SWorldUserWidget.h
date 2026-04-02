@@ -26,7 +26,7 @@ protected:
 
 public:
 
-	UPROPERTY(EditAnyhere, Category = "UI")
+	UPROPERTY(EditAnywhere, Category = "UI")
 	FVector WorldOffset;//这个变量是一个三维向量，表示UI元素在世界空间中的偏移量，可以用来调整UI元素的位置，使其更好地适应游戏场景。
 
 	UPROPERTY(BlueprintReadOnly, Category = "UI")

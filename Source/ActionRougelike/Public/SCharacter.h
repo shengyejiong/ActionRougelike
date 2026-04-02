@@ -101,4 +101,7 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+	UFUNCTION(Exec)//这个函数可以在控制台中输入命令来调用，方便测试
+	void Healself(float Amount = 100);
+	
 };

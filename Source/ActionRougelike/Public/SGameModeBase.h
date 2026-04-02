@@ -47,4 +47,7 @@ public:
 	ASGameModeBase();
 
 	virtual void StartPlay() override;//这个类不用beginplay，因为它是一个基类，所有的游戏模式都要继承它，所以在这个类里实现startplay就好了，其他的游戏模式只需要继承这个类就可以了
+
+	UFUNCTION(Exec)
+	void KillAll();
 };

@@ -23,6 +23,20 @@ void ASGameModeBase::StartPlay()
 	GetWorldTimerManager().SetTimer(TimerHandle_SpawnBots, this, &ASGameModeBase::SpawnBotTimerElapsed, SpawnTimerInterval, true);//这个函数的意思是每隔SpawnTimerInterval秒钟就调用一次SpawnBotTimerElapsed函数，直到游戏结束
 }
 
+void ASGameModeBase::KillAll()
+{
+	for (TActorIterator<ASAICharacter> It(GetWorld()); It; ++It)//这个函数的意思是遍历当前场景中的所有ASAICharacter类型的演员，也就是敌人
+	{
+		ASAICharacter* Bot = *It;
+
+		USAttributeComponent* AttributeComp = USAttributeComponent::GetAttributes(Bot);//这个函数的意思是获取敌人身上的属性组件，也就是存储敌人生命值的组件
+		if (ensure(AttributeComp) && AttributeComp->IsAlive())
+		{
+			AttributeComp->Kill(this);//这个函数的意思是调用属性组件的Kill函数来杀死敌人，参数是这个类，也就是游戏模式类，可以用来记录杀死敌人的信息，比如得分等
+		}
+	}
+}
+
 void ASGameModeBase::SpawnBotTimerElapsed()
 {
 	/*

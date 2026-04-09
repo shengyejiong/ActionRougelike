@@ -5,7 +5,7 @@
 #include "Components/SphereComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Particles/ParticleSystemComponent.h"
-#include "SAttributeComponent.h"
+#include <SGameplayFunctionLibrary.h>
 
 
 // Sets default values
@@ -14,7 +14,6 @@ ASMagicProjectile::ASMagicProjectile()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	SphereComp = CreateDefaultSubobject<USphereComponent>("SphereComp");
 	/*
 		第一种碰撞设置:直接修改碰撞响应
 	*/
@@ -25,45 +24,21 @@ ASMagicProjectile::ASMagicProjectile()
 		第二种碰撞设置:使用预设的碰撞配置文件
 	*/
 	SphereComp->SetCollisionProfileName("Projectile");
-	SphereComp->OnComponentBeginOverlap.AddDynamic(this, &ASMagicProjectile::OnActorOverlap);//绑定重叠事件
-	RootComponent = SphereComp;
 
-	EffectComp = CreateDefaultSubobject<UParticleSystemComponent>("EffectComp");
-	EffectComp->SetupAttachment(RootComponent);
-
-	MovementComp = CreateDefaultSubobject<UProjectileMovementComponent>("MovementComp");
-	MovementComp->InitialSpeed = 1000.0f;
-	MovementComp->bRotationFollowsVelocity = true;
-	MovementComp->bInitialVelocityInLocalSpace = true;
+	//MovementComp = CreateDefaultSubobject<UProjectileMovementComponent>("MovementComp");
+	//MovementComp->InitialSpeed = 1000.0f;
+	//MovementComp->bRotationFollowsVelocity = true;
+	//MovementComp->bInitialVelocityInLocalSpace = true;
 
 
 }
 
 void ASMagicProjectile::OnActorOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	if (OtherActor && OtherActor != GetInstigator())//确保碰撞对象存在且不是发射者自己
+	if (OtherActor && OtherActor != GetInstigator() && USGameplayFunctionLibrary::ApplyDirectionalDamage(GetInstigator(), OtherActor, Damage, SweepResult))
 	{
-		USAttributeComponent* AttributeComp = Cast<USAttributeComponent>(OtherActor->GetComponentByClass(USAttributeComponent::StaticClass()));//获取碰撞对象的属性组件
-		if (AttributeComp)
-		{
-			AttributeComp->ApplyHealthChange(GetInstigator(), Damage);//对碰撞对象造成
-
-			Destroy();
-		}
+		Explode();
 	}
-}
-
-// Called when the game starts or when spawned
-void ASMagicProjectile::BeginPlay()
-{
-	Super::BeginPlay();
-	
-}
-
-// Called every frame
-void ASMagicProjectile::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
 
 }
 

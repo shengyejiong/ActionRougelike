@@ -9,6 +9,10 @@
 #include "SAttributeComponent.h"
 #include "EngineUtils.h"
 #include "DrawDebugHelpers.h"
+#include <SCharacter.h>
+
+//这个变量的意思是创建一个控制台变量，名字是su.SpawnBots，默认值是true，帮助信息是Enable spawning of bots via timer，这个变量的作用是用来控制是否启用定时生成敌人的功能的，如果这个变量的值是false，那么就不会启用定时生成敌人的功能了
+static TAutoConsoleVariable<bool> CVarSpawnBots(TEXT("su.SpawnBots"), true, TEXT("Enable spawning of bots via timer"), ECVF_Cheat);
 
 
 ASGameModeBase::ASGameModeBase()
@@ -25,6 +29,8 @@ void ASGameModeBase::StartPlay()
 
 void ASGameModeBase::KillAll()
 {
+
+
 	for (TActorIterator<ASAICharacter> It(GetWorld()); It; ++It)//这个函数的意思是遍历当前场景中的所有ASAICharacter类型的演员，也就是敌人
 	{
 		ASAICharacter* Bot = *It;
@@ -39,6 +45,14 @@ void ASGameModeBase::KillAll()
 
 void ASGameModeBase::SpawnBotTimerElapsed()
 {
+
+	//这个控制台参数的意思是如果启用了定时生成敌人的功能，那么就继续执行生成敌人的逻辑，如果没有启用定时生成敌人的功能，那么就直接返回，不执行生成敌人的逻辑了，这样就可以通过控制台命令来控制是否启用定时生成敌人的功能了
+	if (!CVarSpawnBots.GetValueOnGameThread())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Bot spawning disabled via cvar 'CVarSpawnBots'."));
+		return;
+	}
+
 	/*
 	* 把这段逻辑放到这里是因为我们希望生成敌人的逻辑能够定期执行，而不是只在某个事件发生时才执行。
 	*/
@@ -99,5 +113,35 @@ void ASGameModeBase::OnQueryCompleted(UEnvQueryInstanceBlueprintWrapper* QueryIn
 
 		DrawDebugSphere(GetWorld(), Locations[0] + FVector(0, 0, 80), 50.0f, 20, FColor::Blue, false, 60.0f);//绘制一个调试球体在生成敌人的位置，半径为50，分段数为20，颜色为蓝色，不持久化，持续时间为60秒，这个函数可以用来调试和可视化生成敌人的位置
 	}
+}
+
+void ASGameModeBase::RespawnPlayerElapsed(AController* Controller)
+{
+	if (ensure(Controller))
+	{
+		Controller->UnPossess();//这个函数的意思是让玩家控制器放弃对当前角色的控制，这样就可以生成一个新的角色来控制了
+
+		RestartPlayer(Controller);//这个函数的意思是重启玩家，也就是生成玩家角色，参数是玩家的控制器，可以用来生成玩家角色等
+	}
+}
+
+
+void ASGameModeBase::OnActorKilled(AActor* VictimActor, AActor* Killer)
+{
+	ASCharacter* Player = Cast<ASCharacter>(VictimActor);
+	if (Player)
+	{
+		FTimerHandle TimerHandle_RespawnDelay;
+
+		FTimerDelegate Delegate;
+		//这个函数的意思是创建一个定时器委托，当定时器到期时，调用RespawnPlayerElapsed函数来处理玩家重生的逻辑，参数是玩家的控制器，可以用来生成玩家角色等
+		Delegate.BindUFunction(this, "RespawnPlayerElapsed", Player->GetController());
+
+		float RespawnDelay = 2.0f;
+		//这个函数的意思是设置一个定时器，当定时器到期时，调用Delegate来处理玩家重生的逻辑，参数是RespawnDelay，也就是重生的延迟时间，单位是秒，最后一个参数表示定时器是否循环，这里设置为false，也就是说只会调用一次
+		GetWorldTimerManager().SetTimer(TimerHandle_RespawnDelay, Delegate, RespawnDelay, false);
+	}
+
+	UE_LOG(LogTemp, Log, TEXT("OnActorKilled: Victim: %s, Killer: %s"), *GetNameSafe(VictimActor), *GetNameSafe(Killer));
 }
 

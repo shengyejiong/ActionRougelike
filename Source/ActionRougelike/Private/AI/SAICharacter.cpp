@@ -9,7 +9,8 @@
 #include "SAttributeComponent.h"
 #include "BrainComponent.h"
 #include "SWorldUserWidget.h"
-
+#include "Components/CapsuleComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
 
 
@@ -21,6 +22,9 @@ ASAICharacter::ASAICharacter()
 	AttributeComp = CreateDefaultSubobject<USAttributeComponent>("AttributeComp");
 
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
+
+	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Ignore);//这个函数是用来设置角色的胶囊组件对世界动态物体的碰撞响应为忽略，这样角色就不会与世界动态物体发生碰撞了，可以避免一些不必要的碰撞检测和物理反应，提高性能。
+	GetMesh()->SetGenerateOverlapEvents(true);//这个函数是用来设置角色的网格组件生成重叠事件的，这样当角色与其他物体发生重叠时，就会触发重叠事件，可以在代码中监听这些事件来实现一些功能，比如感知、攻击等。
 
 	TimeToHitParamName = "TimeToHit";//这个变量是一个浮点数，表示在角色的材质上设置的参数
 
@@ -62,6 +66,8 @@ void ASAICharacter::OnHealthChanged(AActor* InstigatorActor, USAttributeComponen
 
 		GetMesh()->SetScalarParameterValueOnMaterials(TimeToHitParamName, GetWorld()->TimeSeconds);//如果血量减少了，就在角色的材质上设置一个参数，这个参数的值是当前的世界时间，这样就可以在材质中根据这个参数来实现一些效果，比如闪红等
 
+
+
 		if (NewHealth <= 0.0f)
 		{
 			//停止BT
@@ -75,6 +81,8 @@ void ASAICharacter::OnHealthChanged(AActor* InstigatorActor, USAttributeComponen
 			GetMesh()->SetAllBodiesSimulatePhysics(true);//这个函数是将角色的所有骨骼设置为模拟物理，这样角色就会变成一个布娃娃，受到物理引擎的影响，可以被推开、倒地等。
 			GetMesh()->SetCollisionProfileName("Ragdoll");//这个函数是将角色的碰撞配置文件设置为"Ragdoll"，这样角色就会使用布娃娃的碰撞设置，可以与其他物体发生碰撞并产生物理反应。
 
+			GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);//角色死亡后，禁用胶囊组件的碰撞，这样角色就不会与其他物体发生碰撞了，可以避免一些不必要的碰撞检测和物理反应，提高性能。
+			GetCharacterMovement()->DisableMovement();//这个函数是用来禁用角色的移动组件的，这样角色就无法再移动了，可以避免一些不必要的移动计算和输入处理，提高性能。
 
 			//设置生命周期
 			SetLifeSpan(10.0f);

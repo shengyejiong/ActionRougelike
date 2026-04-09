@@ -14,7 +14,7 @@ ASProjectileBase::ASProjectileBase()
  
 	SphereComp = CreateDefaultSubobject<USphereComponent>("SphereComp");
 	SphereComp->SetCollisionProfileName("Projectile");
-	SphereComp->OnComponentHit.AddDynamic(this, &ASProjectileBase::OnActorHit);//给组件添加一个事件，当组件发生碰撞时会调用ASProjectileBase::OnActorHit函数
+	SphereComp->OnComponentBeginOverlap.AddDynamic(this, &ASProjectileBase::OnActorOverlap);//给组件添加重叠事件，当组件发生重叠时会调用ASProjectileBase::OnActorOverlap函数
 	RootComponent = SphereComp;
 
 	EffectComp = CreateDefaultSubobject<UParticleSystemComponent>("EffectComp");
@@ -35,8 +35,18 @@ ASProjectileBase::ASProjectileBase()
 
 }
 
-void ASProjectileBase::OnActorHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
+void ASProjectileBase::OnActorOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
+	if (OtherActor == nullptr || OtherActor == GetInstigator())
+	{
+		return;
+	}
+
+	SphereComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);//当投射物发生碰撞时，禁用碰撞以避免重复触发碰撞事件
+
+	MoveComp->StopMovementImmediately();//立即停止投射物的移动
+	EffectComp->Deactivate();//停用投射物的粒子效果
+	AudioComp->Stop();
 	Explode();
 }
 
@@ -51,6 +61,7 @@ void ASProjectileBase::Explode_Implementation()
 		Destroy();
 	}
 }
+
 
 void ASProjectileBase::PostInitializeComponents()
 {

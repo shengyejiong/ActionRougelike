@@ -94,6 +94,8 @@ protected:
 
 	virtual void PostInitializeComponents() override;//这个函数是在组件初始化完成后被调用的，可以在这里添加一些逻辑，比如监听属性变化等
 
+	virtual FVector GetPawnViewLocation() const override;//这个函数是用来获取角色的视点位置的，可以在这里返回摄像机的位置，这样就可以让角色的视点跟随摄像机了
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;

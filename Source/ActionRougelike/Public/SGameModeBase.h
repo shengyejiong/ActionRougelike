@@ -42,7 +42,13 @@ protected:
 	void OnQueryCompleted(UEnvQueryInstanceBlueprintWrapper* QueryInstance, EEnvQueryStatus::Type QueryStatus);// 这个函数用来处理环境查询的结果，当环境查询完成时会调用这个函数来处理查询结果
 	//这个函数的参数分别是：查询实例，查询状态，查询实例是一个环境查询实例的包装类，可以用来获取查询结果，查询状态是一个枚举类型，表示查询的状态，比如成功、失败等
 
+	UFUNCTION()
+	void RespawnPlayerElapsed(AController* Controller);//这个函数用来处理玩家重生的事件，当一个玩家被杀死后会调用这个函数来处理玩家重生的逻辑，比如生成玩家角色等
+
 public:
+
+	//标记为virtual的函数可以被子类重写，这样子类就可以实现自己的逻辑来处理演员被杀死的事件，而不需要修改基类的代码，这样就可以提高代码的复用性和可维护性。
+	virtual void OnActorKilled(AActor* VictimActor, AActor* Killer);//这个函数用来处理演员被杀死的事件，当一个演员被杀死时会调用这个函数来处理相关逻辑，比如增加得分、生成掉落物等
 
 	ASGameModeBase();
 

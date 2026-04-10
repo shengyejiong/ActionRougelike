@@ -42,12 +42,20 @@ void ASProjectileBase::OnActorOverlap(UPrimitiveComponent* OverlappedComponent, 
 		return;
 	}
 
-	SphereComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);//当投射物发生碰撞时，禁用碰撞以避免重复触发碰撞事件
+	if (bDestroyed)
+	{
+		SphereComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);//当投射物发生碰撞时，禁用碰撞以避免重复触发碰撞事件
 
-	MoveComp->StopMovementImmediately();//立即停止投射物的移动
-	EffectComp->Deactivate();//停用投射物的粒子效果
-	AudioComp->Stop();
-	Explode();
+		MoveComp->StopMovementImmediately();//立即停止投射物的移动
+		EffectComp->Deactivate();//停用投射物的粒子效果
+		if (AudioComp)
+		{
+			AudioComp->FadeOut(0.15f, 0.0f);//淡出投射物的音效，持续时间为0.15秒，最终音量为0
+		}
+
+		Explode();
+	}
+
 }
 
 
@@ -58,7 +66,12 @@ void ASProjectileBase::Explode_Implementation()
 	{
 		UGameplayStatics::SpawnEmitterAtLocation(this, ImpactVFX, GetActorLocation(), GetActorRotation());
 
-		Destroy();
+		if (ImpactSound)
+		{
+			UGameplayStatics::PlaySoundAtLocation(this, ImpactSound, GetActorLocation());
+		}
+
+		SetLifeSpan(DestroyDelay);
 	}
 }
 

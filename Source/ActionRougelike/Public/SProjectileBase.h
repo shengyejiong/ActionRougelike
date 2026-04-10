@@ -33,6 +33,15 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Components");
 	UAudioComponent* AudioComp;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Components");
+	USoundBase* ImpactSound;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Effects")
+	float DestroyDelay = 0.2f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Projectile")
+	bool bDestroyed = true;
+
 	UPROPERTY(EditDefaultsOnly, Category = "Effects");
 	float ImpactShakeInnerRadius;
 

@@ -2,9 +2,11 @@
 
 #pragma once
 
+#include <GameplayTagContainer.h>
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
 #include "SActionComponent.generated.h"
+
 
 class USAction;
 
@@ -14,6 +16,10 @@ class ACTIONROUGELIKE_API USActionComponent : public UActorComponent
 	GENERATED_BODY()
 
 public:	
+
+	// Tag是一种标识，可以用来标识一个对象的状态或者属性，比如一个角色可以有一个"Stunned"的Tag来表示它被眩晕了，一个物体可以有一个"Flammable"的Tag来表示它易燃了。GameplayTagContainer是一个容器类，可以存储多个Tag，并且提供了一些方法来操作这些Tag，比如添加、删除、查询等等。在这个组件中，ActiveGameplayTags就是用来存储当前激活的Tag的容器，这些Tag可以用来控制动作的执行或者其他逻辑。
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tags")
+	FGameplayTagContainer ActiveGameplayTags;
 
 	UFUNCTION(BlueprintCallable, Category = "Actions")
 	void AddAction(TSubclassOf<USAction> ActionClass);

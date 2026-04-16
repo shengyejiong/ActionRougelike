@@ -21,8 +21,12 @@ public:
 
 	void Interact_Implementation(APawn* InstigatorPawn) override;
 
+	int CreditCost;
+
 protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Components")
 	UStaticMeshComponent* MeshComp;
+
+
 };

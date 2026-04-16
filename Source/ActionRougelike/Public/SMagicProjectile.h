@@ -5,6 +5,7 @@
 #include "SProjectileBase.h"
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "GameplayTagContainer.h"
 #include "SMagicProjectile.generated.h"
 
 
@@ -21,13 +22,16 @@ public:
 	// Sets default values for this actor's properties
 	ASMagicProjectile();
 
-	UPROPERTY(EditAnywhere)
-	float Damage = 20.0f;
-
 protected:
+	bool bHasAppliedHit = false;
 
 	virtual void OnActorOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult) override;
 	
+	UPROPERTY(EditDefaultsOnly, Category = "Damage")
+	FGameplayTag ParryTag;//创建一个ParryTag标签，用于攻击格挡时的标签判断
+
+	UPROPERTY(EditDefaultsOnly, Category = "Damage")
+	float Damage = 20.0f;
 
 	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	//UProjectileMovementComponent* MovementComp;

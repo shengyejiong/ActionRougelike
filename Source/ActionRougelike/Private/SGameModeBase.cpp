@@ -10,6 +10,7 @@
 #include "EngineUtils.h"
 #include "DrawDebugHelpers.h"
 #include <SCharacter.h>
+#include "SPlayerState.h"
 
 //这个变量的意思是创建一个控制台变量，名字是su.SpawnBots，默认值是true，帮助信息是Enable spawning of bots via timer，这个变量的作用是用来控制是否启用定时生成敌人的功能的，如果这个变量的值是false，那么就不会启用定时生成敌人的功能了
 static TAutoConsoleVariable<bool> CVarSpawnBots(TEXT("su.SpawnBots"), true, TEXT("Enable spawning of bots via timer"), ECVF_Cheat);
@@ -18,6 +19,12 @@ static TAutoConsoleVariable<bool> CVarSpawnBots(TEXT("su.SpawnBots"), true, TEXT
 ASGameModeBase::ASGameModeBase()
 {
 	SpawnTimerInterval = 2.0f;//这个变量的默认值是2秒，也就是说每隔2秒钟就会生成一个敌人
+	CreditsPerKill = 20;//这个变量的默认值是20，也就是说每杀死一个敌人就会获得20点积分
+
+	DesiredPowerupCount = 10;//这个变量的默认值是10，也就是说场景中最多只能有10个道具，如果超过这个数量了，那么就不再生成新的道具了
+	RequiredPowerupDistance = 2000;//这个变量的默认值是2000，也就是说生成道具时，新的道具必须与已有道具保持至少2000单位的距离
+
+	PlayerStateClass = ASPlayerState::StaticClass();//这个变量的默认值是ASPlayerState类，也就是说每个玩家都会有一个ASPlayerState类的实例来存储玩家的信息，比如积分、等级等
 }
 
 void ASGameModeBase::StartPlay()
@@ -25,6 +32,18 @@ void ASGameModeBase::StartPlay()
 	Super::StartPlay();
 
 	GetWorldTimerManager().SetTimer(TimerHandle_SpawnBots, this, &ASGameModeBase::SpawnBotTimerElapsed, SpawnTimerInterval, true);//这个函数的意思是每隔SpawnTimerInterval秒钟就调用一次SpawnBotTimerElapsed函数，直到游戏结束
+
+	//如果PowerupClasses数组中有元素，那么就运行一个环境查询来生成道具，查询的类型是PowerupSpawnQuery，查询的结果会调用OnPowerupSpawnQueryCompleted函数来处理查询结果
+	if (ensure(PowerupClasses.Num() > 0))
+	{
+		UEnvQueryInstanceBlueprintWrapper* QueryInstance = UEnvQueryManager::RunEQSQuery(this, PowerupSpawnQuery, this, EEnvQueryRunMode::AllMatching, nullptr);
+
+		if (ensure(QueryInstance))
+		{
+			QueryInstance->GetOnQueryFinishedEvent().AddDynamic(this, &ASGameModeBase::OnPowerupSpawnQueryCompleted);
+		}
+
+	}
 }
 
 void ASGameModeBase::KillAll()
@@ -115,6 +134,59 @@ void ASGameModeBase::OnQueryCompleted(UEnvQueryInstanceBlueprintWrapper* QueryIn
 	}
 }
 
+void ASGameModeBase::OnPowerupSpawnQueryCompleted(UEnvQueryInstanceBlueprintWrapper* QueryInstance, EEnvQueryStatus::Type QueryStatus)
+{
+	if (QueryStatus != EEnvQueryStatus::Success)//这个函数的意思是如果查询状态不是成功，那么就直接返回，不处理查询结果
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Spawn bot EQS Query Failed!"));
+		return;
+	}
+
+	TArray<FVector> Locations = QueryInstance->GetResultsAsLocations();//这个函数的意思是获取查询结果中的位置，查询结果可能是一个数组，所以要用一个数组来存储这些位置
+
+	TArray<FVector> UsedLocations;//这个变量的意思是存储已经使用过的位置，也就是说生成道具时，新的道具必须与已有道具保持至少RequiredPowerupDistance单位的距离，如果新位置与已有位置的距离小于RequiredPowerupDistance，那么就不生成道具了
+
+	int32 SpawnCounter = 0;//这个变量的意思是存储已经生成的道具数量，也就是说当生成的道具数量达到DesiredPowerupCount时，就不再生成新的道具了
+
+	//这个函数的意思是当查询完成时，处理查询结果，生成道具，直到生成的道具数量达到DesiredPowerupCount或者没有可用的位置了为止
+	while (SpawnCounter < DesiredPowerupCount && Locations.Num() > 0)
+	{
+		int32 RandomLocationIndex = FMath::RandRange(0, Locations.Num() - 1);//这个函数的意思是随机选择一个位置的索引，范围是从0到查询结果中的位置数量减1
+
+		FVector PickedLocation = Locations[RandomLocationIndex];//这个函数的意思是根据随机选择的位置索引，获取这个位置
+		Locations.RemoveAt(RandomLocationIndex);//这个函数的意思是从查询结果中移除已经使用过的位置，这样就不会重复使用同一个位置了
+
+		bool bValidLocation = true;//这个变量的意思是存储当前选择的位置是否有效，也就是说新的道具必须与已有道具保持至少RequiredPowerupDistance单位的距离，如果新位置与已有位置的距离小于RequiredPowerupDistance，那么就不生成道具了
+		
+		for (FVector OtherLocation : UsedLocations)
+		{
+			float DistanceTo = (PickedLocation - OtherLocation).Size();//这个函数的意思是计算当前选择的位置与已有位置的距离，PickedLocation是当前选择的位置，OtherLocation是已有位置，Size函数是计算向量的长度，也就是距离
+
+			if (DistanceTo < RequiredPowerupDistance)
+			{
+				bValidLocation = false;//这个函数的意思是如果当前选择的位置与已有位置的距离小于RequiredPowerupDistance，那么就把当前选择的位置标记为无效，这样就不会生成道具了
+				break;
+			}
+		}
+
+		if (!bValidLocation)
+		{
+			continue;//这个函数的意思是如果当前选择的位置无效，那么就跳过当前循环，继续随机选择下一个位置了
+		}
+
+		int32 RandomClassIndex = FMath::RandRange(0, PowerupClasses.Num() - 1);//这个函数的意思是随机选择一个道具类的索引，范围是从0到PowerupClasses数组中的元素数量减1
+		TSubclassOf<AActor> RandomPowerupClass = PowerupClasses[RandomClassIndex];//这个函数的意思是根据随机选择的道具类索引，获取这个道具类
+
+		GetWorld()->SpawnActor<AActor>(RandomPowerupClass, PickedLocation, FRotator::ZeroRotator);//这个函数的意思是生成一个道具，道具的类是随机选择的道具类，生成的位置是当前选择的位置，生成的旋转是零旋转
+
+		UsedLocations.Add(PickedLocation);//这个函数的意思是把当前选择的位置添加到已经使用过的位置数组中，这样就可以保证新的道具与已有道具保持至少RequiredPowerupDistance单位的距离了
+		SpawnCounter++;//这个函数的意思是增加已经生成的道具数量的计数器，这样就可以知道已经生成了多少个道具了，当生成的道具数量达到DesiredPowerupCount时，就不再生成新的道具了
+
+	}
+
+}
+
+
 void ASGameModeBase::RespawnPlayerElapsed(AController* Controller)
 {
 	if (ensure(Controller))
@@ -128,6 +200,8 @@ void ASGameModeBase::RespawnPlayerElapsed(AController* Controller)
 
 void ASGameModeBase::OnActorKilled(AActor* VictimActor, AActor* Killer)
 {
+	UE_LOG(LogTemp, Log, TEXT("OnActorKilled: Victim: %s, Killer: %s"), *GetNameSafe(VictimActor), *GetNameSafe(Killer));
+
 	ASCharacter* Player = Cast<ASCharacter>(VictimActor);
 	if (Player)
 	{
@@ -142,6 +216,17 @@ void ASGameModeBase::OnActorKilled(AActor* VictimActor, AActor* Killer)
 		GetWorldTimerManager().SetTimer(TimerHandle_RespawnDelay, Delegate, RespawnDelay, false);
 	}
 
-	UE_LOG(LogTemp, Log, TEXT("OnActorKilled: Victim: %s, Killer: %s"), *GetNameSafe(VictimActor), *GetNameSafe(Killer));
+	APawn* KillerPawn = Cast<APawn>(Killer);//这个函数的意思是把杀死演员的角色转换成一个Pawn类型的角色，这样就可以获取杀死演员的玩家状态了
+
+	if (KillerPawn)
+	{
+		ASPlayerState* PS = KillerPawn->GetPlayerState<ASPlayerState>();//这个函数的意思是获取杀死演员的玩家状态，也就是存储玩家信息的类，比如积分、等级等
+
+		if (PS)
+		{
+			PS->AddCredits(CreditsPerKill);//这个函数的意思是给杀死演员的玩家增加积分，参数是每杀死一个敌人获得的积分数量
+		}
+	}
+
 }
 

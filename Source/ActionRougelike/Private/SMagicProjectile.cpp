@@ -6,6 +6,7 @@
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Particles/ParticleSystemComponent.h"
 #include <SGameplayFunctionLibrary.h>
+#include "SActionComponent.h"
 
 
 // Sets default values
@@ -35,10 +36,33 @@ ASMagicProjectile::ASMagicProjectile()
 
 void ASMagicProjectile::OnActorOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	if (OtherActor && OtherActor != GetInstigator() && USGameplayFunctionLibrary::ApplyDirectionalDamage(GetInstigator(), OtherActor, Damage, SweepResult))
+	if (bHasAppliedHit)
 	{
-		Explode();
+		return;
 	}
 
+	if (OtherActor && OtherActor != GetInstigator())
+	{
+		//可以使用static来创建一个静态的标签对象，这样在函数的多次调用中都会使用同一个标签对象，节省资源和提高性能。
+		//static FGameplayTag Tag = FGameplayTag::RequestGameplayTag("status.Parrying");
+
+		USActionComponent* ActionComp = Cast<USActionComponent>(OtherActor->GetComponentByClass(USActionComponent::StaticClass()));
+		if (ActionComp && ActionComp->ActiveGameplayTags.HasTag(ParryTag))
+		{
+			MoveComp->Velocity = -MoveComp->Velocity;//反弹
+
+			SetInstigator(Cast<APawn>(OtherActor));//改变伤害来源为反弹后的角色
+			return;//如果被格挡了，就不继续往下执行了，不会造成伤害
+		}
+
+		if (USGameplayFunctionLibrary::ApplyDirectionalDamage(GetInstigator(), OtherActor, Damage, SweepResult))
+		{
+			bHasAppliedHit = true;
+			SphereComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+			MoveComp->StopMovementImmediately();
+			Explode();
+		}
+
+	}
 }
 

@@ -3,6 +3,7 @@
 
 #include "SPowerup_HealthPotion.h"
 #include "SAttributeComponent.h"
+#include "SPlayerState.h"
 
 
 ASPowerup_HealthPotion::ASPowerup_HealthPotion()
@@ -12,6 +13,7 @@ ASPowerup_HealthPotion::ASPowerup_HealthPotion()
 	MeshComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	MeshComp->SetupAttachment(RootComponent);
 
+	CreditCost = 50;
 }
 
 
@@ -27,10 +29,17 @@ void ASPowerup_HealthPotion::Interact_Implementation(APawn* InstigatorPawn)
 
 	if (ensure(AttributeComp) && !AttributeComp->IsFullHealth())//如果玩家的生命值组件存在，并且玩家的生命值没有满，我们就可以增加玩家的生命值。
 	{
-
-		if (AttributeComp->ApplyHealthChange(this, AttributeComp->GetHealthMax()))//我们调用玩家的生命值组件的ApplyHealthChange函数来增加玩家的生命值，增加的数值是玩家的最大生命值，这样就可以让玩家的生命值恢复到满。
+		//我们需要先获取玩家的PlayerState，因为我们可能需要在增加玩家生命值后更新玩家的UI界面，显示玩家当前的生命值。
+		if (ASPlayerState* PS = InstigatorPawn->GetPlayerState<ASPlayerState>())
 		{
-			HideAndCooldownPowerup();
+			//我们需要先检查玩家是否有足够的金币来购买这个生命药水，如果玩家没有足够的金币，我们就不能增加玩家的生命值。
+			if (PS->RemoveCredits(CreditCost) && AttributeComp->ApplyHealthChange(this, AttributeComp->GetHealthMax()))
+			{
+				HideAndCooldownPowerup();
+			}
+				
 		}
+
+		
 	}
 }

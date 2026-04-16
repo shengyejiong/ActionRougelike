@@ -35,12 +35,21 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "AI")
 	float SpawnTimerInterval;// 这个变量是用来控制生成敌人的时间间隔的，单位是秒.
 
+	UPROPERTY(EditDefaultsOnly, Category = "Powerups")
+	UEnvQuery* PowerupSpawnQuery;// 这个变量是用来存储生成道具的环境查询的，UEnvQuery是一个环境查询类，可以用来查询游戏世界中的一些信息，比如生成道具的位置
+
+	UPROPERTY(EditDefaultsOnly, Category = "Powerups")
+	TArray<TSubclassOf<AActor>> PowerupClasses;// 这个变量是用来存储生成道具的类的，TArray<TSubclassOf<AActor>>是一个数组，可以用来存储多个类的子类，这样就可以在蓝图中选择多个类来生成道具
+
 	UFUNCTION()
 	void SpawnBotTimerElapsed();// 这个函数用来生成敌人
 
 	UFUNCTION()
 	void OnQueryCompleted(UEnvQueryInstanceBlueprintWrapper* QueryInstance, EEnvQueryStatus::Type QueryStatus);// 这个函数用来处理环境查询的结果，当环境查询完成时会调用这个函数来处理查询结果
 	//这个函数的参数分别是：查询实例，查询状态，查询实例是一个环境查询实例的包装类，可以用来获取查询结果，查询状态是一个枚举类型，表示查询的状态，比如成功、失败等
+
+	UFUNCTION()
+	void OnPowerupSpawnQueryCompleted(UEnvQueryInstanceBlueprintWrapper* QueryInstance, EEnvQueryStatus::Type QueryStatus);
 
 	UFUNCTION()
 	void RespawnPlayerElapsed(AController* Controller);//这个函数用来处理玩家重生的事件，当一个玩家被杀死后会调用这个函数来处理玩家重生的逻辑，比如生成玩家角色等
@@ -56,4 +65,13 @@ public:
 
 	UFUNCTION(Exec)
 	void KillAll();
+
+	UPROPERTY(EditDefaultsOnly, Category = "AI")
+	float CreditsPerKill;
+
+	UPROPERTY(EditDefaultsOnly, Category = "AI")
+	int DesiredPowerupCount;
+
+	UPROPERTY(EditDefaultsOnly, Category = "AI")
+	float RequiredPowerupDistance;
 };

@@ -10,6 +10,7 @@ class UPawnSensingComponent;//这个类是一个组件，提供了感知功能，可以让AI角色感知
 class USAttributeComponent;//这个类是一个组件，提供了属性功能，可以让AI角色拥有一些属性，比如生命值、攻击力等。
 class UUserWidget;//这个类是一个用户界面小部件的基类，可以用来创建各种用户界面元素，比如血量条、技能图标等。
 class USWorldUserWidget;//这个类是一个用户界面小部件的子类，提供了一些额外的功能，比如绑定到世界坐标、自动更新位置等，可以用来创建一些特殊的用户界面元素，比如血量条、名字标签等。
+class USActionComponent;//这个类是一个组件，提供了动作功能，可以让AI角色拥有一些动作，比如攻击、移动等。
 
 UCLASS()
 class ACTIONROUGELIKE_API ASAICharacter : public ACharacter
@@ -41,6 +42,10 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, Category = "Comp")
 	UPawnSensingComponent* PawnSensingComp;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	USActionComponent* ActionComp;
+
 
 	UFUNCTION()
 	void OnPawnSeen(APawn* SeenPawn);

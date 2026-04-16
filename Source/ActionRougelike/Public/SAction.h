@@ -45,7 +45,7 @@ public:
 	UFUNCTION(BlueprintNativeEvent, Category = "Action")
 	void StartAction(AActor* Instigator);
 
-	UFUNCTION(BlueprintNativeEvent, Category = "Action")
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Action")
 	void StopAction(AActor* Instigator);
 
 	UWorld* GetWorld() const override;//重写GetWorld函数，使得这个对象能够访问到世界对象

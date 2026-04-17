@@ -22,7 +22,11 @@ public:
 	FGameplayTagContainer ActiveGameplayTags;
 
 	UFUNCTION(BlueprintCallable, Category = "Actions")
-	void AddAction(TSubclassOf<USAction> ActionClass);
+	void AddAction(AActor* Instigator, TSubclassOf<USAction> ActionClass);
+
+	//这个函数是用来在蓝图中调用的，传入一个动作的实例，Instigator是执行这个动作的角色
+	UFUNCTION(BlueprintCallable, Category = "Actions")
+	void RemoveAction(USAction* ActionToRemove);
 
 	//这个函数是用来在蓝图中调用的，传入一个动作的名字，Instigator是执行这个动作的角色
 	UFUNCTION(BlueprintCallable, Category = "Actions")

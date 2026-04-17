@@ -13,6 +13,8 @@ class USphereComponent;
 class UProjectileMovementComponent;
 class UParticleSystemComponent;
 
+class USActionEffect;
+
 UCLASS()
 class ACTIONROUGELIKE_API ASMagicProjectile : public ASProjectileBase
 {
@@ -32,6 +34,9 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Damage")
 	float Damage = 20.0f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Effects")
+	TSubclassOf<USActionEffect> BurningActionClass;
 
 	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	//UProjectileMovementComponent* MovementComp;

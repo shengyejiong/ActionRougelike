@@ -23,7 +23,7 @@ void USActionComponent::BeginPlay()
 
 	for(TSubclassOf<USAction> ActionClass : DefaultActions)//遍历默认动作数组，给每个动作类添加一个动作对象
 	{
-		AddAction(ActionClass);
+		AddAction(GetOwner(), ActionClass);//调用AddAction函数，传入这个组件所属的角色和这个动作类
 	}
 	
 }
@@ -38,7 +38,7 @@ void USActionComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAct
 	GEngine->AddOnScreenDebugMessage(-1, 0.0f, FColor::White, DebugMsg);
 }
 
-void USActionComponent::AddAction(TSubclassOf<USAction> ActionClass)
+void USActionComponent::AddAction(AActor* Instigator, TSubclassOf<USAction> ActionClass)
 {
 	if (!ensure(ActionClass))
 	{
@@ -50,7 +50,24 @@ void USActionComponent::AddAction(TSubclassOf<USAction> ActionClass)
 	if (ensure(NewAction))//如果新建成功了，就把这个动作添加到动作数组中
 	{
 		Actions.Add(NewAction);
+		
+		//如果这个动作设置为自动开始，并且这个动作可以被执行，那么就让这个动作开始执行，传入Instigator作为执行这个动作的角色
+		if (NewAction->bAutoStart && ensure(NewAction->CanStart(Instigator)))
+		{
+			NewAction->StartAction(Instigator);
+		}
 	}
+}
+
+void USActionComponent::RemoveAction(USAction* ActionToRemove)
+{
+	//这个判断是为了确保我们要移除的这个动作对象存在，并且这个动作对象没有在运行中，如果这个动作对象正在运行中，我们就不应该移除它，因为这样可能会导致一些问题，比如这个动作对象正在执行一些逻辑或者触发一些事件，如果我们在这个时候移除它，就可能会导致一些错误或者崩溃，所以我们需要确保这个动作对象没有在运行中才可以安全地移除它
+	if (!ensure(ActionToRemove && !ActionToRemove->IsRunning()))
+	{
+		return;
+	}
+
+	Actions.Remove(ActionToRemove);//从动作数组中移除这个动作对象
 }
 
 bool USActionComponent::StartActionByName(AActor* Instigator, FName ActionName)

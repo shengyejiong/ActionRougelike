@@ -7,6 +7,7 @@
 #include "Particles/ParticleSystemComponent.h"
 #include <SGameplayFunctionLibrary.h>
 #include "SActionComponent.h"
+#include "SActionEffect.h"
 
 
 // Sets default values
@@ -61,6 +62,11 @@ void ASMagicProjectile::OnActorOverlap(UPrimitiveComponent* OverlappedComponent,
 			SphereComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 			MoveComp->StopMovementImmediately();
 			Explode();
+
+			if (ActionComp)
+			{
+				ActionComp->AddAction(GetInstigator(), BurningActionClass);
+			}
 		}
 
 	}

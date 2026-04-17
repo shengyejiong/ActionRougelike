@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+ï»¿// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
@@ -9,6 +9,10 @@
 class USphereComponent;
 class UProjectileMovementComponent;
 class UParticleSystemComponent;
+class UParticleSystem;
+class UAudioComponent;
+class USoundBase;
+class UPrimitiveComponent;
 
 UCLASS()
 class ACTIONROUGELIKE_API ASProjectileBase : public AActor
@@ -18,22 +22,22 @@ class ACTIONROUGELIKE_API ASProjectileBase : public AActor
 
 protected:
 
-	UPROPERTY(EditDefaultsOnly, Category = "Effects");
+	UPROPERTY(EditDefaultsOnly, Category = "Effects")
 	UParticleSystem* ImpactVFX;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components");
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	USphereComponent* SphereComp;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components");
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	UProjectileMovementComponent* MoveComp;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components");
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	UParticleSystemComponent* EffectComp;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Components");
+	UPROPERTY(EditDefaultsOnly, Category = "Components")
 	UAudioComponent* AudioComp;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Components");
+	UPROPERTY(EditDefaultsOnly, Category = "Components")
 	USoundBase* ImpactSound;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Effects")
@@ -42,23 +46,23 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Projectile")
 	bool bDestroyed = true;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Effects");
+	UPROPERTY(EditDefaultsOnly, Category = "Effects")
 	float ImpactShakeInnerRadius;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Effects");
+	UPROPERTY(EditDefaultsOnly, Category = "Effects")
 	float ImpactShakeOuterRadius;
 
 	UFUNCTION()
 	virtual void OnActorOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
-	// BlueprintNativeEvent = ±íÊ¾Õâ¸öº¯Êı¼È¿ÉÒÔÔÚC++ÖĞÊµÏÖ£¬Ò²¿ÉÒÔÔÚÀ¶Í¼ÖĞÖØĞ´¡£Èç¹ûÔÚC++ÖĞÃ»ÓĞÌá¹©ÊµÏÖ£¬ÄÇÃ´ÔÚÀ¶Í¼ÖĞ±ØĞëÖØĞ´Õâ¸öº¯Êı²ÅÄÜÊ¹ÓÃ¡£
-	// BlueprintCallable = ±íÊ¾Õâ¸öº¯Êı¿ÉÒÔÔÚÀ¶Í¼ÖĞ±»µ÷ÓÃ¡£ÕâÊ¹µÃÉè¼ÆÊ¦ºÍ³ÌĞòÔ±¿ÉÒÔÔÚÀ¶Í¼ÖĞÊ¹ÓÃÕâ¸öº¯ÊıÀ´ÊµÏÖÓÎÏ·Âß¼­£¬¶ø²»ĞèÒª±àĞ´C++´úÂë¡£
-	// Õâ¸öº¯ÊıµÄ×÷ÓÃÊÇµ±Í¶ÉäÎï·¢ÉúÅö×²Ê±´¥·¢±¬Õ¨Ğ§¹û¡£Ëü¿ÉÒÔÔÚC++ÖĞÊµÏÖÄ¬ÈÏµÄ±¬Õ¨ĞĞÎª£¬Ò²¿ÉÒÔÔÚÀ¶Í¼ÖĞÖØĞ´ÒÔÊµÏÖ×Ô¶¨ÒåµÄ±¬Õ¨Ğ§¹û¡£
+	// BlueprintNativeEvent = è¡¨ç¤ºè¿™ä¸ªå‡½æ•°æ—¢å¯ä»¥åœ¨C++ä¸­å®ç°ï¼Œä¹Ÿå¯ä»¥åœ¨è“å›¾ä¸­é‡å†™ã€‚å¦‚æœåœ¨C++ä¸­æ²¡æœ‰æä¾›å®ç°ï¼Œé‚£ä¹ˆåœ¨è“å›¾ä¸­å¿…é¡»é‡å†™è¿™ä¸ªå‡½æ•°æ‰èƒ½ä½¿ç”¨ã€‚
+	// BlueprintCallable = è¡¨ç¤ºè¿™ä¸ªå‡½æ•°å¯ä»¥åœ¨è“å›¾ä¸­è¢«è°ƒç”¨ã€‚è¿™ä½¿å¾—è®¾è®¡å¸ˆå’Œç¨‹åºå‘˜å¯ä»¥åœ¨è“å›¾ä¸­ä½¿ç”¨è¿™ä¸ªå‡½æ•°æ¥å®ç°æ¸¸æˆé€»è¾‘ï¼Œè€Œä¸éœ€è¦ç¼–å†™C++ä»£ç ã€‚
+	// è¿™ä¸ªå‡½æ•°çš„ä½œç”¨æ˜¯å½“æŠ•å°„ç‰©å‘ç”Ÿç¢°æ’æ—¶è§¦å‘çˆ†ç‚¸æ•ˆæœã€‚å®ƒå¯ä»¥åœ¨C++ä¸­å®ç°é»˜è®¤çš„çˆ†ç‚¸è¡Œä¸ºï¼Œä¹Ÿå¯ä»¥åœ¨è“å›¾ä¸­é‡å†™ä»¥å®ç°è‡ªå®šä¹‰çš„çˆ†ç‚¸æ•ˆæœã€‚
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
 	void Explode();
 
 
-	// PostInitializeComponents()ÊÇAActorÀàÖĞµÄÒ»¸öĞéº¯Êı£¬ÔÚActorµÄ×é¼ş³õÊ¼»¯Íê³Éºó±»µ÷ÓÃ¡£Õâ¸öº¯ÊıÍ¨³£ÓÃÓÚÔÚ×é¼ş³õÊ¼»¯Íê³ÉºóÖ´ĞĞÒ»Ğ©¶îÍâµÄÉèÖÃ»òÂß¼­£¬ÀıÈç°ó¶¨ÊÂ¼ş¡¢ÉèÖÃ³õÊ¼×´Ì¬µÈ¡£
+	// PostInitializeComponents()æ˜¯AActorç±»ä¸­çš„ä¸€ä¸ªè™šå‡½æ•°ï¼Œåœ¨Actorçš„ç»„ä»¶åˆå§‹åŒ–å®Œæˆåè¢«è°ƒç”¨ã€‚è¿™ä¸ªå‡½æ•°é€šå¸¸ç”¨äºåœ¨ç»„ä»¶åˆå§‹åŒ–å®Œæˆåæ‰§è¡Œä¸€äº›é¢å¤–çš„è®¾ç½®æˆ–é€»è¾‘ï¼Œä¾‹å¦‚ç»‘å®šäº‹ä»¶ã€è®¾ç½®åˆå§‹çŠ¶æ€ç­‰ã€‚
 	virtual void PostInitializeComponents() override;
 
 
@@ -67,3 +71,6 @@ public:
 	ASProjectileBase();
 
 };
+
+
+

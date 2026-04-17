@@ -1,19 +1,20 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+ï»¿// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
-#include <GameplayTagContainer.h>
 #include "CoreMinimal.h"
+#include "GameplayTagContainer.h"
 #include "UObject/NoExportTypes.h"
 #include "SAction.generated.h"
 
 
 class UWorld;
+class USActionComponent;
 
 /**
  * 
  */
-UCLASS(Blueprintable)//uclassÊÇÓÃÀ´ÉùÃ÷Ò»¸öÀàµÄ£¬BlueprintableÊÇÓÃÀ´¸æËßUEÕâ¸öÀà¿ÉÒÔ±»À¶Í¼¼Ì³ĞµÄ
+UCLASS(Blueprintable)//uclassæ˜¯ç”¨æ¥å£°æ˜ä¸€ä¸ªç±»çš„ï¼ŒBlueprintableæ˜¯ç”¨æ¥å‘Šè¯‰UEè¿™ä¸ªç±»å¯ä»¥è¢«è“å›¾ç»§æ‰¿çš„
 class ACTIONROUGELIKE_API USAction : public UObject
 {
 	GENERATED_BODY()
@@ -21,23 +22,26 @@ class ACTIONROUGELIKE_API USAction : public UObject
 protected:
 
 	UFUNCTION(BlueprintCallable, Category = "Action")
-	USActionComponent* GetOwningComponent() const;//Õâ¸öº¯ÊıÊÇÓÃÀ´»ñÈ¡Õâ¸ö¶¯×÷ËùÊôµÄ×é¼şµÄ£¬ÕâÑùÎÒÃÇ¾Í¿ÉÒÔÍ¨¹ıÕâ¸ö×é¼şÀ´·ÃÎÊ½ÇÉ«µÄTag»òÕßÆäËûÊôĞÔ
+	USActionComponent* GetOwningComponent() const;//è¿™ä¸ªå‡½æ•°æ˜¯ç”¨æ¥è·å–è¿™ä¸ªåŠ¨ä½œæ‰€å±çš„ç»„ä»¶çš„ï¼Œè¿™æ ·æˆ‘ä»¬å°±å¯ä»¥é€šè¿‡è¿™ä¸ªç»„ä»¶æ¥è®¿é—®è§’è‰²çš„Tagæˆ–è€…å…¶ä»–å±æ€§
 
 	UPROPERTY(EditDefaultsOnly, Category = "Tags")
-	FGameplayTagContainer GrantsTags;//Õâ¸öÊôĞÔÊÇÓÃÀ´ÔÚ¶¯×÷Ö´ĞĞÊ±¸ø½ÇÉ«Ìí¼ÓÒ»Ğ©TagµÄ£¬±ÈÈçÒ»¸ö¹¥»÷¶¯×÷¿ÉÒÔ¸ø½ÇÉ«Ìí¼ÓÒ»¸ö"Attacking"µÄTag£¬ÕâÑùÆäËûÏµÍ³¾Í¿ÉÒÔ¸ù¾İÕâ¸öTagÀ´ÅĞ¶Ï½ÇÉ«ÊÇ·ñÔÚ¹¥»÷×´Ì¬
+	FGameplayTagContainer GrantsTags;//è¿™ä¸ªå±æ€§æ˜¯ç”¨æ¥åœ¨åŠ¨ä½œæ‰§è¡Œæ—¶ç»™è§’è‰²æ·»åŠ ä¸€äº›Tagçš„ï¼Œæ¯”å¦‚ä¸€ä¸ªæ”»å‡»åŠ¨ä½œå¯ä»¥ç»™è§’è‰²æ·»åŠ ä¸€ä¸ª"Attacking"çš„Tagï¼Œè¿™æ ·å…¶ä»–ç³»ç»Ÿå°±å¯ä»¥æ ¹æ®è¿™ä¸ªTagæ¥åˆ¤æ–­è§’è‰²æ˜¯å¦åœ¨æ”»å‡»çŠ¶æ€
 
-	UPROPERTY(EditDefaultsonly, Category = "Tags")
-	FGameplayTagContainer BlockedTags;//Õâ¸öÊôĞÔÊÇÓÃÀ´ÔÚ¶¯×÷Ö´ĞĞÊ±¼ì²é½ÇÉ«ÊÇ·ñÓĞÒ»Ğ©TagµÄ£¬Èç¹ûÓĞµÄ»°¾Í²»ÄÜÖ´ĞĞÕâ¸ö¶¯×÷£¬±ÈÈçÒ»¸ö¹¥»÷¶¯×÷¿ÉÒÔ¼ì²é½ÇÉ«ÊÇ·ñÓĞÒ»¸ö"Stunned"µÄTag£¬Èç¹ûÓĞµÄ»°¾Í²»ÄÜÖ´ĞĞÕâ¸ö¹¥»÷¶¯×÷
+	UPROPERTY(EditDefaultsOnly, Category = "Tags")
+	FGameplayTagContainer BlockedTags;//è¿™ä¸ªå±æ€§æ˜¯ç”¨æ¥åœ¨åŠ¨ä½œæ‰§è¡Œæ—¶æ£€æŸ¥è§’è‰²æ˜¯å¦æœ‰ä¸€äº›Tagçš„ï¼Œå¦‚æœæœ‰çš„è¯å°±ä¸èƒ½æ‰§è¡Œè¿™ä¸ªåŠ¨ä½œï¼Œæ¯”å¦‚ä¸€ä¸ªæ”»å‡»åŠ¨ä½œå¯ä»¥æ£€æŸ¥è§’è‰²æ˜¯å¦æœ‰ä¸€ä¸ª"Stunned"çš„Tagï¼Œå¦‚æœæœ‰çš„è¯å°±ä¸èƒ½æ‰§è¡Œè¿™ä¸ªæ”»å‡»åŠ¨ä½œ
 
-	bool bIsRunning;//¼ÇÂ¼¶¯×÷ÊÇ·ñÕıÔÚ½øĞĞ
+	bool bIsRunning;//è®°å½•åŠ¨ä½œæ˜¯å¦æ­£åœ¨è¿›è¡Œ
 
 public:
 
+	UPROPERTY(EditDefaultsOnly, Category = "Action")
+	bool bAutoStart;//è¿™ä¸ªå±æ€§æ˜¯ç”¨æ¥è®¾ç½®è¿™ä¸ªåŠ¨ä½œæ˜¯å¦åœ¨è§’è‰²ç”Ÿæˆæ—¶è‡ªåŠ¨å¼€å§‹çš„ï¼Œå¦‚æœè®¾ç½®ä¸ºtrueï¼Œé‚£ä¹ˆå½“è§’è‰²ç”Ÿæˆæ—¶è¿™ä¸ªåŠ¨ä½œå°±ä¼šè‡ªåŠ¨å¼€å§‹æ‰§è¡Œ
+
 	UFUNCTION(BlueprintCallable, Category = "Action")
-	bool IsRunning() const;//Õâ¸öº¯ÊıÊÇÓÃÀ´¼ì²éÕâ¸ö¶¯×÷ÊÇ·ñÕıÔÚÔËĞĞµÄ£¬·µ»ØÒ»¸ö²¼¶ûÖµ±íÊ¾ÊÇ·ñÕıÔÚÔËĞĞ
+	bool IsRunning() const;//è¿™ä¸ªå‡½æ•°æ˜¯ç”¨æ¥æ£€æŸ¥è¿™ä¸ªåŠ¨ä½œæ˜¯å¦æ­£åœ¨è¿è¡Œçš„ï¼Œè¿”å›ä¸€ä¸ªå¸ƒå°”å€¼è¡¨ç¤ºæ˜¯å¦æ­£åœ¨è¿è¡Œ
 
 	UFUNCTION(BlueprintNativeEvent, Category = "Action")
-	bool CanStart(AActor* Instigator) const;//Õâ¸öº¯ÊıÊÇÓÃÀ´¼ì²éÕâ¸ö¶¯×÷ÊÇ·ñ¿ÉÒÔ±»Ö´ĞĞµÄ£¬´«ÈëÒ»¸ö½ÇÉ«×÷Îª²ÎÊı£¬·µ»ØÒ»¸ö²¼¶ûÖµ±íÊ¾ÊÇ·ñ¿ÉÒÔÖ´ĞĞÕâ¸ö¶¯×÷
+	bool CanStart(AActor* Instigator) const;//è¿™ä¸ªå‡½æ•°æ˜¯ç”¨æ¥æ£€æŸ¥è¿™ä¸ªåŠ¨ä½œæ˜¯å¦å¯ä»¥è¢«æ‰§è¡Œçš„ï¼Œä¼ å…¥ä¸€ä¸ªè§’è‰²ä½œä¸ºå‚æ•°ï¼Œè¿”å›ä¸€ä¸ªå¸ƒå°”å€¼è¡¨ç¤ºæ˜¯å¦å¯ä»¥æ‰§è¡Œè¿™ä¸ªåŠ¨ä½œ
 
 	UPROPERTY(EditDefaultsOnly, Category = "Action")
 	FName ActionName;
@@ -48,5 +52,7 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Action")
 	void StopAction(AActor* Instigator);
 
-	UWorld* GetWorld() const override;//ÖØĞ´GetWorldº¯Êı£¬Ê¹µÃÕâ¸ö¶ÔÏóÄÜ¹»·ÃÎÊµ½ÊÀ½ç¶ÔÏó
+	UWorld* GetWorld() const override;//é‡å†™GetWorldå‡½æ•°ï¼Œä½¿å¾—è¿™ä¸ªå¯¹è±¡èƒ½å¤Ÿè®¿é—®åˆ°ä¸–ç•Œå¯¹è±¡
 };
+
+

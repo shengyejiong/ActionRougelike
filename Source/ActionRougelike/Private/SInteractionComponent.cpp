@@ -39,8 +39,13 @@ void USInteractionComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	FindBestInteractable();
+	APawn* MyPawn = Cast<APawn>(GetOwner());//将拥有者转换为一个Pawn
+	if (MyPawn->IsLocallyControlled())
+	{
+		FindBestInteractable();//如果拥有者是本地控制的Pawn，那么就调用寻找最佳可交互对象的函数
+	}
 }
+
 
 void USInteractionComponent::FindBestInteractable()
 {
@@ -78,7 +83,7 @@ void USInteractionComponent::FindBestInteractable()
 	{
 		if (bDebugDraw)
 		{
-			DrawDebugSphere(GetWorld(), Hit.ImpactPoint, TraceRadius, 32, LineColor, false, 2.0f);//在世界中绘制一个球体，位置为碰撞点，半径为30，分段数为32，颜色为LineColor，不持久化，持续2秒
+			DrawDebugSphere(GetWorld(), Hit.ImpactPoint, TraceRadius, 32, LineColor, false, 0.0f);//在世界中绘制一个球体，位置为碰撞点，半径为30，分段数为32，颜色为LineColor，不持久化，持续2秒
 		}
 		AActor* HitActor = Hit.GetActor();
 		if (HitActor)//如果碰撞结果中有一个演员
@@ -124,22 +129,28 @@ void USInteractionComponent::FindBestInteractable()
 
 	if (bDebugDraw)
 	{
-		DrawDebugLine(GetWorld(), EyeLocation, End, LineColor, false, 2.0f, 0, 2.0f);//在世界中绘制一条线，起点为视点位置，终点为远点位置，颜色为LineColor，不持久化，持续2秒，线宽为2.0f
+		DrawDebugLine(GetWorld(), EyeLocation, End, LineColor, false, 2.0f, 0, 0.0f);//在世界中绘制一条线，起点为视点位置，终点为远点位置，颜色为LineColor，不持久化，持续2秒，线宽为2.0f
 	}
 
 }
 
 void USInteractionComponent::PrimaryInteract()
 {
+	ServerInteract(FocusedActor);//调用服务器端的交互函数
+
+}
+
+
+void USInteractionComponent::ServerInteract_Implementation(AActor* InFocus)
+{
+
 	//如果没有焦点演员，输出一条调试消息，并返回
-	if (FocusedActor == nullptr)
+	if (InFocus == nullptr)
 	{
 		GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, "No Focus Actor to interact.");
 		return;
 	}
 
 	APawn* MyPawn = Cast<APawn>(GetOwner());//将拥有者转换为一个Pawn
-
-	ISGameplayInterface::Execute_Interact(FocusedActor, MyPawn);//调用碰撞演员的交互函数，传入拥有者作为参数
-
+	ISGameplayInterface::Execute_Interact(InFocus, MyPawn);//调用碰撞演员的交互函数，传入拥有者作为参数
 }

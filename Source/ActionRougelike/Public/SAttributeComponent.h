@@ -39,14 +39,21 @@ protected:
 	// Category - 在蓝图编辑器和关卡编辑器中显示的分类
 
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Attributes")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Replicated, Category = "Attributes")
 	float Health;
 	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Attributes")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Replicated, Category = "Attributes")
 	float HealthMax;
 
-
 	// HeathMax, Stamina, Strength
+
+	//UPROPERTY(ReplicatedUsing="")
+	//bool bIsAlive;
+
+	// Replicated - 这个属性会在网络上进行复制，也就是说当这个属性在服务器上发生变化的时候，客户端也会相应地发生变化，这样就可以保证服务器和客户端之间的状态是一致的
+	// @FIXME: mark as unreliable once we moved the 'state' out of scharacter - 修复：当我们把状态从角色中移出来之后，标记为不可靠，因为我们不需要保证状态的绝对一致性了，只需要保证大致的一致性，这样可以减少网络带宽的使用和提高性能
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastHealthChanged(AActor* Instigator, float NewHealth, float Delta);
 
 public:	
 

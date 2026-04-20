@@ -13,8 +13,6 @@
 // Sets default values
 ASMagicProjectile::ASMagicProjectile()
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
 
 	/*
 		第一种碰撞设置:直接修改碰撞响应
@@ -25,13 +23,16 @@ ASMagicProjectile::ASMagicProjectile()
 	/*
 		第二种碰撞设置:使用预设的碰撞配置文件
 	*/
-	SphereComp->SetCollisionProfileName("Projectile");
 
 	//MovementComp = CreateDefaultSubobject<UProjectileMovementComponent>("MovementComp");
 	//MovementComp->InitialSpeed = 1000.0f;
 	//MovementComp->bRotationFollowsVelocity = true;
 	//MovementComp->bInitialVelocityInLocalSpace = true;
 
+	SphereComp->SetSphereRadius(20.0f);
+	SphereComp->OnComponentBeginOverlap.AddDynamic(this, &ASMagicProjectile::OnActorOverlap);
+
+	DamageAmount = 20.0f;
 
 }
 
@@ -56,17 +57,17 @@ void ASMagicProjectile::OnActorOverlap(UPrimitiveComponent* OverlappedComponent,
 			return;//如果被格挡了，就不继续往下执行了，不会造成伤害
 		}
 
-		if (USGameplayFunctionLibrary::ApplyDirectionalDamage(GetInstigator(), OtherActor, Damage, SweepResult))
+		if (USGameplayFunctionLibrary::ApplyDirectionalDamage(GetInstigator(), OtherActor, DamageAmount, SweepResult))
 		{
 			bHasAppliedHit = true;
-			SphereComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-			MoveComp->StopMovementImmediately();
 			Explode();
 
 			if (ActionComp)
 			{
 				ActionComp->AddAction(GetInstigator(), BurningActionClass);
 			}
+
+			Super::OnActorOverlap(OverlappedComponent, OtherActor, OtherComp, OtherBodyIndex, bFromSweep, SweepResult);//调用父类的OnActorOverlap函数，执行默认的碰撞处理逻辑，比如禁用碰撞、停止移动、停用粒子效果等
 		}
 
 	}

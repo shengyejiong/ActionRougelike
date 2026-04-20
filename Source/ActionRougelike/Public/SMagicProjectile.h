@@ -33,7 +33,7 @@ protected:
 	FGameplayTag ParryTag;//创建一个ParryTag标签，用于攻击格挡时的标签判断
 
 	UPROPERTY(EditDefaultsOnly, Category = "Damage")
-	float Damage = 20.0f;
+	float DamageAmount;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Effects")
 	TSubclassOf<USActionEffect> BurningActionClass;

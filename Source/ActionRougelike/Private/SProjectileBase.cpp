@@ -14,7 +14,7 @@ ASProjectileBase::ASProjectileBase()
  
 	SphereComp = CreateDefaultSubobject<USphereComponent>("SphereComp");
 	SphereComp->SetCollisionProfileName("Projectile");
-	SphereComp->OnComponentBeginOverlap.AddDynamic(this, &ASProjectileBase::OnActorOverlap);//给组件添加重叠事件，当组件发生重叠时会调用ASProjectileBase::OnActorOverlap函数
+	SphereComp->OnComponentHit.AddDynamic(this, &ASProjectileBase::OnActorHit);
 	RootComponent = SphereComp;
 
 	EffectComp = CreateDefaultSubobject<UParticleSystemComponent>("EffectComp");
@@ -32,8 +32,14 @@ ASProjectileBase::ASProjectileBase()
 	ImpactShakeInnerRadius = 0.0f;
 	ImpactShakeOuterRadius = 1500.0f;
 
-
+	//SetReplicates(true);//设置这个Actor可以被复制到客户端，这样客户端才能看到这个Actor
 }
+
+void ASProjectileBase::OnActorHit(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
+{
+	Explode();
+}
+
 
 void ASProjectileBase::OnActorOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {

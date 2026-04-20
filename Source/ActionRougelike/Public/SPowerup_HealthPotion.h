@@ -25,8 +25,6 @@ public:
 
 protected:
 
-	UPROPERTY(EditDefaultsOnly, Category = "Components")
-	UStaticMeshComponent* MeshComp;
 
 
 };

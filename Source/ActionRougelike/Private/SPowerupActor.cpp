@@ -3,6 +3,7 @@
 
 #include "SPowerupActor.h"
 #include "Components/SphereComponent.h"
+#include "Components/StaticMeshComponent.h"
 
 // Sets default values
 ASPowerupActor::ASPowerupActor()
@@ -11,8 +12,13 @@ ASPowerupActor::ASPowerupActor()
 	SphereComp->SetCollisionProfileName("Powerup");//设置碰撞预设为Powerup，Powerup预设需要在编辑器中设置
 	RootComponent = SphereComp;
 
+	MeshComp = CreateDefaultSubobject<UStaticMeshComponent>("MeshComp");
+	MeshComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);//设置MeshComp的碰撞为NoCollision，因为我们只需要SphereComp来处理碰撞
+	MeshComp->SetupAttachment(RootComponent);
+
 	RespawnTime = 10.0f;
 
+	SetReplicates(true);//设置这个Actor可以被复制到客户端，这样客户端才能看到这个Actor
 }
 
 void ASPowerupActor::Interact_Implementation(APawn* InstigatorPawn)

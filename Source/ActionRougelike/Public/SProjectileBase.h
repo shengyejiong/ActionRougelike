@@ -55,6 +55,9 @@ protected:
 	UFUNCTION()
 	virtual void OnActorOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
+	UFUNCTION()
+	virtual void OnActorHit(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+
 	// BlueprintNativeEvent = 表示这个函数既可以在C++中实现，也可以在蓝图中重写。如果在C++中没有提供实现，那么在蓝图中必须重写这个函数才能使用。
 	// BlueprintCallable = 表示这个函数可以在蓝图中被调用。这使得设计师和程序员可以在蓝图中使用这个函数来实现游戏逻辑，而不需要编写C++代码。
 	// 这个函数的作用是当投射物发生碰撞时触发爆炸效果。它可以在C++中实现默认的爆炸行为，也可以在蓝图中重写以实现自定义的爆炸效果。

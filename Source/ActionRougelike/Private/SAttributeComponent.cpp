@@ -3,6 +3,7 @@
 
 #include "SAttributeComponent.h"
 #include "SGameModeBase.h"
+#include "Net/UnrealNetwork.h"
 
 //这个变量的意思是创建一个控制台变量，名字是su.DamageMultiplier，默认值是1.0f，帮助信息是Global Damage Modifier for Attribute Component，这个变量的作用是用来控制属性组件的全局伤害倍率的，如果这个变量的值是2.0f，那么所有通过属性组件造成的伤害都会乘以2.0f，也就是说伤害会翻倍，如果这个变量的值是0.5f，那么所有通过属性组件造成的伤害都会乘以0.5f，也就是说伤害会减半了，这样就可以通过控制台命令来调整游戏中的伤害平衡了
 static TAutoConsoleVariable<float> CVarDamageMultiplier(TEXT("su.DamageMultiplier"), 1.0f, TEXT("Global Damage Modifier for Attribute Component."), ECVF_Cheat);
@@ -12,7 +13,11 @@ USAttributeComponent::USAttributeComponent()
 {
 	Health = 100;
 	HealthMax = Health;
+
+	SetIsReplicatedByDefault(true);// 这个函数的意思是设置这个组件默认情况下是会被复制的，也就是说当这个组件所属的Actor被复制到客户端时，这个组件的数据也会被复制过去，这样客户端就可以正确地显示和使用这个组件了
+
 }
+
 
 bool USAttributeComponent::Kill(AActor* InstigatorActor)
 {
@@ -53,8 +58,16 @@ bool USAttributeComponent::ApplyHealthChange(AActor* InstigatorActor,float Delta
 	Health = FMath::Clamp(Health + Delta, 0.0f, HealthMax);// FMath::Clamp函数会将Health + Delta的结果限制在0.0f和HealthMax之间，确保血量不会超过最大值或者变成负数
 
 	float ActualDelta = Health - OldHealth;// 计算实际的血量变化值，可能会因为Clamp函数的限制而与传入的Delta值不同
+	//OnHealthChanged.Broadcast(InstigatorActor, this, Health, ActualDelta);// 触发血量变化的事件，参数分别是：造成伤害的Actor（这里传入InstigatorActor），属性组件本身，当前血量和实际的血量变化值
 
-	OnHealthChanged.Broadcast(InstigatorActor, this, Health, ActualDelta);// 触发血量变化的事件，参数分别是：造成伤害的Actor（这里传入InstigatorActor），属性组件本身，当前血量和实际的血量变化值
+	if (ActualDelta != 0.0f)
+	{
+		// 只有当血量发生了实际的变化时，才会触发血量变化的事件，这样可以避免在没有实际变化的时候触发事件，减少不必要的事件处理和网络带宽的使用
+		MulticastHealthChanged(InstigatorActor, Health, ActualDelta);
+	}
+
+	// 一旦血量变化了，就要在所有客户端上广播这个变化的事件，这样所有客户端都可以正确地显示和使用这个组件
+	MulticastHealthChanged(InstigatorActor, Health, ActualDelta);
 
 	if (ActualDelta < 0.0f && Health == 0.0f)
 	{
@@ -94,3 +107,22 @@ bool USAttributeComponent::IsActorAlive(AActor* Actor)
 	return false;
 }
 
+
+void USAttributeComponent::MulticastHealthChanged_Implementation(AActor* Instigator, float NewHealth, float Delta)
+{
+	// 这个函数的意思是当MulticastHealthChanged事件被触发时，在所有客户端上执行这个函数来广播血量变化的事件，参数分别是：造成伤害的Actor（这里传入Instigator），属性组件本身，当前血量和实际的血量变化值，这样所有客户端都可以正确地显示和使用这个组件了
+	OnHealthChanged.Broadcast(Instigator, this, NewHealth, Delta);
+}
+
+// 这个函数的意思是重写GetLifetimeReplicatedProps函数来指定哪些属性需要被复制到客户端，这样客户端就可以正确地显示和使用这些属性
+void USAttributeComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(USAttributeComponent, Health);
+	DOREPLIFETIME(USAttributeComponent, HealthMax);
+
+	//只让组件拥有者看到Healthmax的值
+	//不仅能优化带宽，还可以保护数据安全，防止其他玩家通过网络包篡改HealthMax的值来作弊
+	//DOREPLIFETIME_CONDITION(USAttributeComponent, HealthMax, COND_OwnerOnly);
+}

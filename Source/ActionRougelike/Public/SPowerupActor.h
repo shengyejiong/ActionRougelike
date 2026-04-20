@@ -24,6 +24,9 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Powerup")
 	float RespawnTime;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Components")
+	UStaticMeshComponent* MeshComp;
+
 	FTimerHandle TimerHandle_RespawnTimer;// ¼ÆÊ±Æ÷¾ä±ú
 
 	UFUNCTION()

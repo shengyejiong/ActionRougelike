@@ -32,7 +32,7 @@ ASProjectileBase::ASProjectileBase()
 	ImpactShakeInnerRadius = 0.0f;
 	ImpactShakeOuterRadius = 1500.0f;
 
-	//SetReplicates(true);//设置这个Actor可以被复制到客户端，这样客户端才能看到这个Actor
+	SetReplicates(true);//设置这个Actor可以被复制到客户端，这样客户端才能看到这个Actor
 }
 
 void ASProjectileBase::OnActorHit(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)

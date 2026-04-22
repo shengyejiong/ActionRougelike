@@ -3,6 +3,7 @@
 
 #include "SActionComponent.h"
 #include "SAction.h"
+#include "../ActionRougelike.h"
 
 
 // Sets default values for this component's properties
@@ -12,7 +13,7 @@ USActionComponent::USActionComponent()
 	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = true;
 
-	// ...
+	SetIsReplicatedByDefault(true);//这个函数是用来设置这个组件在网络上是否需要被复制的，传入true表示这个组件需要被复制，这样当这个组件所属的角色在服务器上发生变化时，这个组件的状态也会同步到所有客户端，这对于一些需要在网络上保持一致的组件来说是非常重要的，比如这个动作组件，我们希望当一个角色执行一个动作时，这个动作的状态能够正确地同步到所有客户端，这样所有玩家都能看到这个动作的效果，所以我们需要设置这个组件为需要被复制的
 }
 
 
@@ -34,8 +35,25 @@ void USActionComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAct
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	FString DebugMsg = GetNameSafe(GetOwner()) + " : " + ActiveGameplayTags.ToStringSimple();//构造一个调试信息字符串，包含这个组件所属的角色的名字和当前激活的Tag的列表
-	GEngine->AddOnScreenDebugMessage(-1, 0.0f, FColor::White, DebugMsg);
+	//FString DebugMsg = GetNameSafe(GetOwner()) + " : " + ActiveGameplayTags.ToStringSimple();//构造一个调试信息字符串，包含这个组件所属的角色的名字和当前激活的Tag的列表
+	//GEngine->AddOnScreenDebugMessage(-1, 0.0f, FColor::White, DebugMsg);
+
+	// 遍历动作数组，给每个动作对象添加一个调试信息字符串，包含这个动作的名字、是否正在运行以及这个动作所属的组件的名字
+	for (USAction* Action : Actions)
+	{
+		// 如果这个动作正在运行中，就把这个动作的名字显示在屏幕上，颜色为蓝色，否则颜色为白色
+		FColor TextColor = Action->IsRunning() ? FColor::Blue : FColor::White;
+
+		FString ActionMsg = FString::Printf(TEXT("[%s] Action: %s ; IsRunning: %s ; Outer: %s"),
+			*GetNameSafe(GetOwner()),
+			*Action->ActionName.ToString(),
+			Action->IsRunning() ? TEXT("true") : TEXT("false"),
+			*GetNameSafe(GetOuter()));
+
+		LogOnScreen(this, ActionMsg, TextColor, 0.0f);
+
+	}
+
 }
 
 void USActionComponent::AddAction(AActor* Instigator, TSubclassOf<USAction> ActionClass)
@@ -83,6 +101,12 @@ bool USActionComponent::StartActionByName(AActor* Instigator, FName ActionName)
 				continue;//如果这个动作不能被执行，就跳过这个动作继续找下一个动作
 			}
 
+			// 是客户端吗？如果是客户端，就调用服务器函数来让服务器执行这个动作，这样可以保证这个动作的状态能够正确地同步到所有客户端，如果我们直接在客户端执行这个动作，可能会导致一些问题，比如这个动作的状态只能在这个客户端上看到，而其他客户端看不到，这样就会导致一些不一致的情况，所以我们需要让服务器来执行这个动作，这样所有客户端都能看到这个动作的效果
+			if (!GetOwner()->HasAuthority())
+			{
+				ServerStartAction(Instigator, ActionName);
+			}
+
 			Action->StartAction(Instigator);
 			return true;
 		}
@@ -106,4 +130,28 @@ bool USActionComponent::StopActionByName(AActor* Instigator, FName ActionName)
 	}
 
 	return false;
+}
+
+USAction* USActionComponent::GetAction(TSubclassOf<USAction> ActionClass) const
+{
+	if (!ActionClass)
+	{
+		return nullptr;
+	}
+
+	for (USAction* Action : Actions)
+	{
+		if (Action && Action->GetClass() == ActionClass)
+		{
+			return Action;
+		}
+	}
+
+	return nullptr;
+}
+
+
+void USActionComponent::ServerStartAction_Implementation(AActor* Instigator, FName ActionName)
+{
+	StartActionByName(Instigator, ActionName);
 }

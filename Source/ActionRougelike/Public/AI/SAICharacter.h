@@ -32,8 +32,15 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = "Effects")
 	FName TimeToHitParamName;//这个变量是一个浮点数，表示在角色的材质上设置的参数，用来实现一些效果，比如闪红等。
 
+	UPROPERTY(VisibleAnywhere)
+	FName TargetActorKey;
+
 	void SetTargetActor(AActor* NewTarget);//这个函数是用来设置目标角色的，可以在行为树中调用这个函数来更新AI角色的目标。
 
+	AActor* GetTargetActor() const;//这个函数是用来设置目标角色的，可以在行为树中调用这个函数来更新AI角色的目标。
+
+	UPROPERTY(EditDefaultsOnly, Category = "UI")
+	TSubclassOf<UUserWidget> SpottedWidgetClass;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	USAttributeComponent* AttributeComp;

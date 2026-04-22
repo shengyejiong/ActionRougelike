@@ -3,6 +3,7 @@
 
 #include "SAction.h"
 #include "SActionComponent.h"
+#include <ActionRougelike/ActionRougelike.h>
 
 
 
@@ -25,7 +26,8 @@ bool USAction::CanStart_Implementation(AActor* Instigator) const
 
 void USAction::StartAction_Implementation(AActor* Instigator)
 {
-	UE_LOG(LogTemp, Log, TEXT("Running: %s"), *GetNameSafe(this));
+	//UE_LOG(LogTemp, Log, TEXT("Running: %s"), *GetNameSafe(this));
+	LogOnScreen(this, FString::Printf(TEXT("Started: %s"), *ActionName.ToString()), FColor::Green);
 
 	USActionComponent* Comp = GetOwningComponent();//调用GetOwningComponent函数获取这个动作所属的组件，这样我们就可以通过这个组件来访问角色的Tag或者其他属性
 	Comp->ActiveGameplayTags.AppendTags(GrantsTags);//在动作开始时，将GrantsTags中的Tag添加到组件的ActiveGameplayTags中，这样角色就会获得这些Tag的效果
@@ -35,7 +37,8 @@ void USAction::StartAction_Implementation(AActor* Instigator)
 
 void USAction::StopAction_Implementation(AActor* Instigator)
 {
-	UE_LOG(LogTemp, Log, TEXT("Running: %s"), *GetNameSafe(this));
+	//UE_LOG(LogTemp, Log, TEXT("Running: %s"), *GetNameSafe(this));
+	LogOnScreen(this, FString::Printf(TEXT("Stopped: %s"), *ActionName.ToString()), FColor::White);
 
 	ensureAlways(bIsRunning);//确保这个动作正在运行，如果不是的话就会在编辑器中弹出一个错误提示
 

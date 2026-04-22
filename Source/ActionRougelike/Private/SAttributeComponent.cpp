@@ -13,6 +13,8 @@ USAttributeComponent::USAttributeComponent()
 {
 	Health = 100;
 	HealthMax = Health;
+	Rage = 100;
+	RageMax = Rage;
 
 	SetIsReplicatedByDefault(true);// 这个函数的意思是设置这个组件默认情况下是会被复制的，也就是说当这个组件所属的Actor被复制到客户端时，这个组件的数据也会被复制过去，这样客户端就可以正确地显示和使用这个组件了
 
@@ -86,6 +88,16 @@ float USAttributeComponent::GetHealth()
 	return Health;
 }
 
+float USAttributeComponent::GetRage() const
+{
+	return Rage;
+}
+
+bool USAttributeComponent::ApplyRage(AActor* InstigatorActor, float Delta)
+{
+	return false;
+}
+
 
 USAttributeComponent* USAttributeComponent::GetAttributes(AActor* FromActor)
 {
@@ -126,3 +138,4 @@ void USAttributeComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>&
 	//不仅能优化带宽，还可以保护数据安全，防止其他玩家通过网络包篡改HealthMax的值来作弊
 	//DOREPLIFETIME_CONDITION(USAttributeComponent, HealthMax, COND_OwnerOnly);
 }
+

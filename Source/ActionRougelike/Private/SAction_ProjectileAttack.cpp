@@ -24,12 +24,15 @@ void USAction_ProjectileAttack::StartAction_Implementation(AActor* Instigator)
 
 		UGameplayStatics::SpawnEmitterAttached(CastingEffect, Character->GetMesh(), HandSocketName, FVector::ZeroVector, FRotator::ZeroRotator, EAttachLocation::SnapToTarget);//在角色的手部位置生成一个特效，特效的位置和旋转都设置为零向量，这样特效就会跟随角色的手部移动和旋转
 
-		FTimerHandle TimerHandle_AttackDelay;//定义一个定时器句柄
-		FTimerDelegate Delegate;//定义一个定时器委托
-		Delegate.BindUFunction(this, "AttackDelay_Elapsed", Character);//将委托绑定到当前对象的AttackDelay_Elapsed函数，并传入角色作为参数
+		if (Character->HasAuthority())
+		{
+			FTimerHandle TimerHandle_AttackDelay;//定义一个定时器句柄
+			FTimerDelegate Delegate;//定义一个定时器委托
+			Delegate.BindUFunction(this, "AttackDelay_Elapsed", Character);//将委托绑定到当前对象的AttackDelay_Elapsed函数，并传入角色作为参数
 
-		GetWorld()->GetTimerManager().SetTimer(TimerHandle_AttackDelay, Delegate, AttackAnimDelay, false);//设置一个定时器，在AttackAnimDelay秒后调用委托，定时器不会循环
+			GetWorld()->GetTimerManager().SetTimer(TimerHandle_AttackDelay, Delegate, AttackAnimDelay, false);//设置一个定时器，在AttackAnimDelay秒后调用委托，定时器不会循环
 
+		}
 	}
 }
 

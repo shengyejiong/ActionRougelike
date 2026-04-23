@@ -4,6 +4,8 @@
 #include "SActionComponent.h"
 #include "SAction.h"
 #include "../ActionRougelike.h"
+#include "Net/UnrealNetwork.h"
+#include "Engine/ActorChannel.h"
 
 
 // Sets default values for this component's properties
@@ -17,17 +19,25 @@ USActionComponent::USActionComponent()
 }
 
 
+
+
 // Called when the game starts
 void USActionComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	for(TSubclassOf<USAction> ActionClass : DefaultActions)//遍历默认动作数组，给每个动作类添加一个动作对象
+	// 保证只在服务器上执行，因为我们希望只有服务器能够控制动作的执行，客户端只能通过服务器来同步动作的状态
+	if (GetOwner()->HasAuthority())
 	{
-		AddAction(GetOwner(), ActionClass);//调用AddAction函数，传入这个组件所属的角色和这个动作类
+		for (TSubclassOf<USAction> ActionClass : DefaultActions)//遍历默认动作数组，给每个动作类添加一个动作对象
+		{
+			AddAction(GetOwner(), ActionClass);//调用AddAction函数，传入这个组件所属的角色和这个动作类
+		}
 	}
+
 	
 }
+
 
 
 // Called every frame
@@ -44,11 +54,7 @@ void USActionComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAct
 		// 如果这个动作正在运行中，就把这个动作的名字显示在屏幕上，颜色为蓝色，否则颜色为白色
 		FColor TextColor = Action->IsRunning() ? FColor::Blue : FColor::White;
 
-		FString ActionMsg = FString::Printf(TEXT("[%s] Action: %s ; IsRunning: %s ; Outer: %s"),
-			*GetNameSafe(GetOwner()),
-			*Action->ActionName.ToString(),
-			Action->IsRunning() ? TEXT("true") : TEXT("false"),
-			*GetNameSafe(GetOuter()));
+		FString ActionMsg = FString::Printf(TEXT("[%s] Action: %s ; IsRunning: %s "), *GetNameSafe(GetOwner()), *GetNameSafe(Action), Action->IsRunning() ? TEXT("true") : TEXT("false"));
 
 		LogOnScreen(this, ActionMsg, TextColor, 0.0f);
 
@@ -63,10 +69,19 @@ void USActionComponent::AddAction(AActor* Instigator, TSubclassOf<USAction> Acti
 		return;
 	}
 
+	// 客户端跳过
+	if (!GetOwner()->HasAuthority())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Client attempted to AddAction, [Class: %s]"), *GetNameSafe(ActionClass));
+		return;
+	}
+
+
 	//新建一个动作对象，传入这个组件和动作类
-	USAction* NewAction = NewObject<USAction>(this, ActionClass);
+	USAction* NewAction = NewObject<USAction>(GetOwner(), ActionClass);
 	if (ensure(NewAction))//如果新建成功了，就把这个动作添加到动作数组中
 	{
+		NewAction->Initialize(this);
 		Actions.Add(NewAction);
 		
 		//如果这个动作设置为自动开始，并且这个动作可以被执行，那么就让这个动作开始执行，传入Instigator作为执行这个动作的角色
@@ -114,23 +129,6 @@ bool USActionComponent::StartActionByName(AActor* Instigator, FName ActionName)
 	return false;
 }
 
-bool USActionComponent::StopActionByName(AActor* Instigator, FName ActionName)
-{
-	for (USAction* Action : Actions)
-	{
-		if (Action && Action->ActionName == ActionName)
-		{
-			if (Action->IsRunning())
-			{
-				Action->StopAction(Instigator);
-				return true;
-			}
-
-		}
-	}
-
-	return false;
-}
 
 USAction* USActionComponent::GetAction(TSubclassOf<USAction> ActionClass) const
 {
@@ -151,7 +149,61 @@ USAction* USActionComponent::GetAction(TSubclassOf<USAction> ActionClass) const
 }
 
 
+bool USActionComponent::StopActionByName(AActor* Instigator, FName ActionName)
+{
+	for (USAction* Action : Actions)
+	{
+		if (Action && Action->ActionName == ActionName)
+		{
+			if (Action->IsRunning())
+			{
+				if (!GetOwner()->HasAuthority())
+				{
+					ServerStopAction(Instigator, ActionName);
+				}
+
+				Action->StopAction(Instigator);
+				return true;
+			}
+
+		}
+	}
+
+	return false;
+}
+
 void USActionComponent::ServerStartAction_Implementation(AActor* Instigator, FName ActionName)
 {
 	StartActionByName(Instigator, ActionName);
+}
+
+void USActionComponent::ServerStopAction_Implementation(AActor* Instigator, FName ActionName)
+{
+	StopActionByName(Instigator, ActionName);
+}
+
+bool USActionComponent::ReplicateSubobjects(UActorChannel* Channel, FOutBunch* Bunch, FReplicationFlags* RepFlags)
+{
+	bool WroteSomething = Super::ReplicateSubobjects(Channel, Bunch, RepFlags);
+	for (USAction* Action : Actions)
+	{
+		// 如果这个动作对象存在，就调用Channel->ReplicateSubobject函数来复制这个动作对象，传入这个动作对象、Bunch和RepFlags作为参数，这样就可以确保这个动作对象的状态能够正确地同步到所有客户端
+		if (Action)
+		{
+			WroteSomething |= Channel->ReplicateSubobject(Action, *Bunch, *RepFlags);
+		}
+	}
+
+	return WroteSomething;
+}
+
+/*
+	这个函数为什么不需要在头文件主动声明
+	是因为一旦有元素被标记为replicated，函数声明就会在"SActionComponent.generated.h"中主动创建
+*/
+void USActionComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(USActionComponent, Actions);
 }

@@ -56,27 +56,27 @@ bool USAttributeComponent::ApplyHealthChange(AActor* InstigatorActor,float Delta
 	}
 
 	float OldHealth = Health;
+	float NewHealth = FMath::Clamp(Health + Delta, 0.0f, HealthMax);
 
-	Health = FMath::Clamp(Health + Delta, 0.0f, HealthMax);// FMath::Clamp函数会将Health + Delta的结果限制在0.0f和HealthMax之间，确保血量不会超过最大值或者变成负数
+	float ActualDelta = NewHealth - OldHealth;// 计算实际的血量变化值，可能会因为Clamp函数的限制而与传入的Delta值不同
 
-	float ActualDelta = Health - OldHealth;// 计算实际的血量变化值，可能会因为Clamp函数的限制而与传入的Delta值不同
-	//OnHealthChanged.Broadcast(InstigatorActor, this, Health, ActualDelta);// 触发血量变化的事件，参数分别是：造成伤害的Actor（这里传入InstigatorActor），属性组件本身，当前血量和实际的血量变化值
-
-	if (ActualDelta != 0.0f)
+	if (GetOwner()->HasAuthority())
 	{
-		// 只有当血量发生了实际的变化时，才会触发血量变化的事件，这样可以避免在没有实际变化的时候触发事件，减少不必要的事件处理和网络带宽的使用
-		MulticastHealthChanged(InstigatorActor, Health, ActualDelta);
-	}
+		Health = NewHealth;
 
-	// 一旦血量变化了，就要在所有客户端上广播这个变化的事件，这样所有客户端都可以正确地显示和使用这个组件
-	MulticastHealthChanged(InstigatorActor, Health, ActualDelta);
-
-	if (ActualDelta < 0.0f && Health == 0.0f)
-	{
-		ASGameModeBase* GM = GetWorld()->GetAuthGameMode<ASGameModeBase>();// 这个函数的意思是获取当前世界的游戏模式，并将其转换为ASGameModeBase类型，如果转换失败或者当前世界没有游戏模式，则返回nullptr
-		if (GM)
+		if (ActualDelta != 0.0f)
 		{
-			GM->OnActorKilled(GetOwner(), InstigatorActor);// 这个函数的意思是调用游戏模式的OnActorKilled函数来通知游戏模式有一个Actor被杀死了，参数分别是被杀死的Actor（这里传入Owner，也就是这个组件所属的Actor）和造成伤害的Actor（这里传入InstigatorActor）
+			// 只有当血量发生了实际的变化时，才会触发血量变化的事件，这样可以避免在没有实际变化的时候触发事件，减少不必要的事件处理和网络带宽的使用
+			MulticastHealthChanged(InstigatorActor, Health, ActualDelta);
+		}
+
+		if (ActualDelta < 0.0f && Health == 0.0f)
+		{
+			ASGameModeBase* GM = GetWorld()->GetAuthGameMode<ASGameModeBase>();// 这个函数的意思是获取当前世界的游戏模式，并将其转换为ASGameModeBase类型，如果转换失败或者当前世界没有游戏模式，则返回nullptr
+			if (GM)
+			{
+				GM->OnActorKilled(GetOwner(), InstigatorActor);// 这个函数的意思是调用游戏模式的OnActorKilled函数来通知游戏模式有一个Actor被杀死了，参数分别是被杀死的Actor（这里传入Owner，也就是这个组件所属的Actor）和造成伤害的Actor（这里传入InstigatorActor）
+			}
 		}
 	}
 

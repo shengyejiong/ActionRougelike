@@ -11,6 +11,21 @@
 class UWorld;
 class USActionComponent;
 
+
+USTRUCT()
+struct FActionRepData //这个结构体是用来在网络中同步动作的状态的，包含了一个布尔值表示动作是否正在运行，以及一个指向执行这个动作的角色的指针
+{
+	GENERATED_BODY()
+
+public:
+
+	UPROPERTY()
+	bool bIsRunning;
+
+	UPROPERTY()
+	AActor* Instigator;
+};
+
 /**
  * 
  */
@@ -21,6 +36,9 @@ class ACTIONROUGELIKE_API USAction : public UObject
 	
 protected:
 
+	UPROPERTY(Replicated)//这个属性是用来在运行时存储这个动作所属的组件的，这样我们就可以通过这个组件来访问角色的Tag或者其他属性
+	USActionComponent* ActionComp;
+
 	UFUNCTION(BlueprintCallable, Category = "Action")
 	USActionComponent* GetOwningComponent() const;//这个函数是用来获取这个动作所属的组件的，这样我们就可以通过这个组件来访问角色的Tag或者其他属性
 
@@ -30,9 +48,16 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Tags")
 	FGameplayTagContainer BlockedTags;//这个属性是用来在动作执行时检查角色是否有一些Tag的，如果有的话就不能执行这个动作，比如一个攻击动作可以检查角色是否有一个"Stunned"的Tag，如果有的话就不能执行这个攻击动作
 
-	bool bIsRunning;//记录动作是否正在进行
+	UPROPERTY(ReplicatedUsing = "OnRep_RepData")//replicatedusing是用来告诉UE这个属性需要在网络中同步，并且当这个属性发生变化时需要调用一个函数来处理这个变化
+	FActionRepData RepData;
+	//bool bIsRunning;//记录动作是否正在进行
+
+	UFUNCTION()
+	void OnRep_RepData();
 
 public:
+
+	void Initialize(USActionComponent* NewActionComp);
 
 	UPROPERTY(EditDefaultsOnly, Category = "Action")
 	bool bAutoStart;//这个属性是用来设置这个动作是否在角色生成时自动开始的，如果设置为true，那么当角色生成时这个动作就会自动开始执行
@@ -53,6 +78,11 @@ public:
 	void StopAction(AActor* Instigator);
 
 	UWorld* GetWorld() const override;//重写GetWorld函数，使得这个对象能够访问到世界对象
+
+	bool IsSupportedForNetworking() const override
+	{
+		return true;//允许网络同步
+	}
 };
 
 

@@ -10,6 +10,7 @@
 class UEnvQuery;
 class UEnvQueryInstanceBlueprintWrapper;
 class UCurveFloat;
+class USSaveGame;
 
 /**
  * 
@@ -20,6 +21,11 @@ class ACTIONROUGELIKE_API ASGameModeBase : public AGameModeBase
 	GENERATED_BODY()
 	
 protected:
+
+	FString SlotName;
+
+	UPROPERTY()
+	USSaveGame* CurrentSaveGame;
 
 	UPROPERTY(EditDefaultsOnly, Category = "AI")
 	TSubclassOf<AActor> MinionClass;// 这个变量是用来存储生成敌人的类的，TSubclassOf<AActor>是一个模板类，可以用来存储一个类的子类，这样就可以在蓝图中选择一个类来生成敌人
@@ -34,6 +40,9 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "AI")
 	float SpawnTimerInterval;// 这个变量是用来控制生成敌人的时间间隔的，单位是秒.
+
+	UPROPERTY(EditDefaultsOnly, Category = "AI")
+	float CreditsPerKill;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Powerups")
 	UEnvQuery* PowerupSpawnQuery;// 这个变量是用来存储生成道具的环境查询的，UEnvQuery是一个环境查询类，可以用来查询游戏世界中的一些信息，比如生成道具的位置
@@ -61,17 +70,25 @@ public:
 
 	ASGameModeBase();
 
+	void InitGame(const FString& MapName, const FString& Options, FString& ErrorMessage) override;
+
 	virtual void StartPlay() override;//这个类不用beginplay，因为它是一个基类，所有的游戏模式都要继承它，所以在这个类里实现startplay就好了，其他的游戏模式只需要继承这个类就可以了
+
+	void HandleStartingNewPlayer_Implementation(APlayerController* NewPlayer) override;
 
 	UFUNCTION(Exec)
 	void KillAll();
 
-	UPROPERTY(EditDefaultsOnly, Category = "AI")
-	float CreditsPerKill;
 
 	UPROPERTY(EditDefaultsOnly, Category = "AI")
 	int DesiredPowerupCount;
 
 	UPROPERTY(EditDefaultsOnly, Category = "AI")
 	float RequiredPowerupDistance;
+
+	UFUNCTION(BlueprintCallable, Category = "SaveGame")
+	void WriteSaveGame();
+
+	void LoadSaveGame();
+
 };

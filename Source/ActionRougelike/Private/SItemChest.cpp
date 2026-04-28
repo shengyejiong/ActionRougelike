@@ -31,6 +31,11 @@ void ASItemChest::Interact_Implementation(APawn* InstigatorPawn)
 
 }
 
+void ASItemChest::OnActorLoaded_Implementation()
+{
+	OnRep_LidOpened();
+}
+
 void ASItemChest::OnRep_LidOpened()
 {
 	float CurrPitch = bLidOpened ? TargetPitch : 0.0f;//如果bLidOpened是true，那么就将CurrPitch设置为TargetPitch了，也就是说当箱子被打开的时候，CurrPitch就会等于TargetPitch了，如果bLidOpened是false，那么就将CurrPitch设置为0.0f了，也就是说当箱子被关闭的时候，CurrPitch就会等于0.0f

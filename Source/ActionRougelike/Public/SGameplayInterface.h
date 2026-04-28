@@ -23,6 +23,10 @@ class ACTIONROUGELIKE_API ISGameplayInterface
 	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
 
+	/* 在一个actor从文档文件中恢复后调用 */
+	UFUNCTION(BlueprintNativeEvent)
+	void OnActorLoaded();
+
 	UFUNCTION(BlueprintCallable ,BlueprintNativeEvent)
 	void Interact(APawn* InstigatorPawn);
 };

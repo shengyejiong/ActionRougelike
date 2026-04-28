@@ -172,6 +172,8 @@ void ASCharacter::OnHealthChanged(AActor* InstigatorActor, USAttributeComponent*
 	{
 		APlayerController* PC = Cast<APlayerController>(GetController());//获取控制器并转换为玩家控制器
 		DisableInput(PC);//禁用输入，这样角色就无法再移动或者攻击了
+
+		SetLifeSpan(5.0f);//设置角色的销毁时间
 	}
 }
 

@@ -11,6 +11,11 @@
 #include "DrawDebugHelpers.h"
 #include <SCharacter.h>
 #include "SPlayerState.h"
+#include "SSaveGame.h"
+#include "Kismet/GameplayStatics.h"
+#include "GameFramework/GameStateBase.h"
+#include "SGameplayInterface.h"
+#include "Serialization/ObjectAndNameAsStringProxyArchive.h"
 
 //这个变量的意思是创建一个控制台变量，名字是su.SpawnBots，默认值是false，帮助信息是Enable spawning of bots via timer，这个变量的作用是用来控制是否启用定时生成敌人的功能的，如果这个变量的值是false，那么就不会启用定时生成敌人的功能了
 static TAutoConsoleVariable<bool> CVarSpawnBots(TEXT("su.SpawnBots"), false, TEXT("Enable spawning of bots via timer"), ECVF_Cheat);
@@ -25,6 +30,16 @@ ASGameModeBase::ASGameModeBase()
 	RequiredPowerupDistance = 2000;//这个变量的默认值是2000，也就是说生成道具时，新的道具必须与已有道具保持至少2000单位的距离
 
 	PlayerStateClass = ASPlayerState::StaticClass();//这个变量的默认值是ASPlayerState类，也就是说每个玩家都会有一个ASPlayerState类的实例来存储玩家的信息，比如积分、等级等
+
+	SlotName = "SaveGame01";//这个变量的默认值是SaveGame01，也就是说保存游戏数据时会使用这个名字来保存，如果需要保存多个游戏数据，可以在蓝图中修改这个变量的值来使用不同的名字来保存游戏数据
+}
+
+// 初始化游戏时调用这个函数，这个函数的参数分别是：地图名称，选项，错误信息，这个函数的作用是加载保存的游戏数据，如果有的话
+void ASGameModeBase::InitGame(const FString& MapName, const FString& Options, FString& ErrorMessage)
+{
+	Super::InitGame(MapName, Options, ErrorMessage);
+
+	LoadSaveGame();
 }
 
 void ASGameModeBase::StartPlay()
@@ -46,6 +61,17 @@ void ASGameModeBase::StartPlay()
 	}
 }
 
+void ASGameModeBase::HandleStartingNewPlayer_Implementation(APlayerController* NewPlayer)
+{
+	Super::HandleStartingNewPlayer_Implementation(NewPlayer);
+
+	ASPlayerState* PS = NewPlayer->GetPlayerState<ASPlayerState>();
+	if (PS)
+	{
+		PS->LoadPlayerState(CurrentSaveGame);
+	}
+}
+
 void ASGameModeBase::KillAll()
 {
 
@@ -61,6 +87,8 @@ void ASGameModeBase::KillAll()
 		}
 	}
 }
+
+
 
 void ASGameModeBase::SpawnBotTimerElapsed()
 {
@@ -230,3 +258,107 @@ void ASGameModeBase::OnActorKilled(AActor* VictimActor, AActor* Killer)
 
 }
 
+
+void ASGameModeBase::WriteSaveGame()
+{
+	// Iterate all player states,we don't have proper Id to match yet(requires Steam or EOS)
+	// 译文：迭代所有玩家状态，我们还没有合适的ID来匹配（需要Steam或EOS）
+	for (int32 i = 0; i < GameState->PlayerArray.Num(); i++)
+	{
+		ASPlayerState* PS = Cast<ASPlayerState>(GameState->PlayerArray[i]);
+		if (PS)
+		{
+			PS->SavePlayerState(CurrentSaveGame);//这个函数的意思是把玩家状态保存到当前的保存游戏数据中，参数是当前的保存游戏对象，可以用来存储玩家状态的信息，比如积分、等级等
+			break;// single player only at this point - 单人游戏
+		}
+	}
+	// 先清空旧数据
+	CurrentSaveGame->SavedActors.Empty();
+
+	// 遍历当前世界中的所有 Actor
+	for (FActorIterator It(GetWorld()); It; ++It)
+	{
+		AActor* Actor = *It;
+		// 只保留实现了 USGameplayInterface 接口的 Actor（例如可交互物品、NPC 等）
+		if (!Actor->Implements<USGameplayInterface>())
+		{
+			continue;
+		}
+
+		// 为该 Actor 构造一份存档数据：记录名称和当前变换
+		FActorSaveData ActorData;
+		ActorData.ActorName = Actor->GetName();
+		ActorData.Transform = Actor->GetActorTransform();
+
+		FMemoryWriter MemWriter(ActorData.ByteData);
+
+		FObjectAndNameAsStringProxyArchive Ar(MemWriter, true);//这个函数的意思是创建一个对象和名称作为字符串的代理存档，参数是内存写入器，第二个参数表示是否保存对象引用，这里设置为true，也就是说在序列化Actor时会把Actor的引用也保存下来，这样在加载游戏数据时就可以正确地恢复Actor的状态了
+		Ar.ArIsSaveGame = true;
+
+		Actor->Serialize(Ar);
+
+		// 将数据添加到全局的存档对象中
+		CurrentSaveGame->SavedActors.Add(ActorData);
+	}
+
+
+	UGameplayStatics::SaveGameToSlot(CurrentSaveGame, SlotName, 0);//这个函数的意思是把当前的保存游戏数据保存到指定的槽位中，参数分别是保存游戏对象，槽位名称，用户索引，这里用户索引设置为0，表示默认用户
+}
+
+
+
+void ASGameModeBase::LoadSaveGame()
+{
+	// 如果存在保存游戏，那么就从保存游戏中加载游戏数据
+	if (UGameplayStatics::DoesSaveGameExist(SlotName, 0))
+	{
+		CurrentSaveGame = Cast<USSaveGame>(UGameplayStatics::LoadGameFromSlot(SlotName, 0));
+		if (CurrentSaveGame == nullptr)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Failed to load SaveGame Data."));
+			return;
+		}
+
+		UE_LOG(LogTemp, Log, TEXT("Loaded SaveGame Data."));
+
+		// 遍历当前世界中的所有 Actor
+		for (FActorIterator It(GetWorld()); It; ++It)
+		{
+			AActor* Actor = *It;
+			// 只保留实现了 USGameplayInterface 接口的 Actor（例如可交互物品、NPC 等）
+			if (!Actor->Implements<USGameplayInterface>())
+			{
+				continue;
+			}
+
+			for (FActorSaveData ActorData : CurrentSaveGame->SavedActors)
+			{
+				// 比对对象名字
+				if (ActorData.ActorName == Actor->GetName())
+				{
+					Actor->SetActorTransform(ActorData.Transform);
+
+					FMemoryReader MemReader(ActorData.ByteData);
+
+					FObjectAndNameAsStringProxyArchive Ar(MemReader, true);
+					Ar.ArIsSaveGame = true;
+					// Convert binary array back into actor's variables
+
+					Actor->Serialize(Ar);
+
+					ISGameplayInterface::Execute_OnActorLoaded(Actor);// 这个函数的意思是调用Actor的OnActorLoaded函数来处理Actor加载完成后的逻辑，这个函数是通过接口来调用的，也就是说只要Actor实现了USGameplayInterface接口，并且在接口中定义了OnActorLoaded函数，那么就可以在加载游戏数据时正确地调用这个函数来处理相关逻辑
+
+					break;
+				}
+			}
+		}
+	}
+	else
+	{
+		CurrentSaveGame = Cast<USSaveGame>(UGameplayStatics::CreateSaveGameObject(USSaveGame::StaticClass()));
+	
+		UE_LOG(LogTemp, Log, TEXT("Created New SaveGame Data."));
+	}
+
+
+}

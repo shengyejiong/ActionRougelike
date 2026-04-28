@@ -2,6 +2,7 @@
 
 
 #include "SPlayerState.h"
+#include "SSaveGame.h"
 
 
 void ASPlayerState::AddCredits(int32 Delta)
@@ -37,6 +38,23 @@ bool ASPlayerState::RemoveCredits(int32 Delta)
 	OnCreditsChanged.Broadcast(this, Credits, -Delta);//广播事件，通知监听者Credits的值发生了变化
 
 	return true;
+}
+
+void ASPlayerState::SavePlayerState_Implementation(USSaveGame* SaveObject)
+{
+	// 先判断目标是否存在
+	if (SaveObject)
+	{
+		SaveObject->Credits = Credits;//将Credits的值保存到SaveObject中
+	}
+}
+
+void ASPlayerState::LoadPlayerState_Implementation(USSaveGame* SaveObject)
+{
+	if (SaveObject)
+	{
+		Credits = SaveObject->Credits;//从SaveObject中加载Credits的值
+	}
 }
 
 int32 ASPlayerState::GetCredits() const

@@ -42,22 +42,24 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "UI")
 	TSubclassOf<UUserWidget> SpottedWidgetClass;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-	USAttributeComponent* AttributeComp;
-
 	virtual void PostInitializeComponents() override;//这个函数是在组件初始化完成后调用的，可以在这里绑定事件或者进行其他初始化操作。
+	
+	UFUNCTION()
+	void OnHealthChanged(AActor* InstigatorActor, USAttributeComponent* OwningComp, float NewHealth, float Delta);
 
 	UPROPERTY(VisibleAnywhere, Category = "Comp")
 	UPawnSensingComponent* PawnSensingComp;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-	USActionComponent* ActionComp;
+	USAttributeComponent* AttributeComp;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	USActionComponent* ActionComp;
 
 	UFUNCTION()
 	void OnPawnSeen(APawn* SeenPawn);
 
-	UFUNCTION()
-	void OnHealthChanged(AActor* InstigatorActor, USAttributeComponent* OwningComp, float NewHealth, float Delta);
+	UFUNCTION(NetMulticast, Unreliable)
+	void MulticastPawnSeen();
 
 };

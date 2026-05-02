@@ -16,6 +16,9 @@
 #include "GameFramework/GameStateBase.h"
 #include "SGameplayInterface.h"
 #include "Serialization/ObjectAndNameAsStringProxyArchive.h"
+#include "SMonsterData.h"
+#include "../ActionRougelike.h"
+#include "SActionComponent.h"
 
 //这个变量的意思是创建一个控制台变量，名字是su.SpawnBots，默认值是false，帮助信息是Enable spawning of bots via timer，这个变量的作用是用来控制是否启用定时生成敌人的功能的，如果这个变量的值是false，那么就不会启用定时生成敌人的功能了
 static TAutoConsoleVariable<bool> CVarSpawnBots(TEXT("su.SpawnBots"), false, TEXT("Enable spawning of bots via timer"), ECVF_Cheat);
@@ -63,13 +66,14 @@ void ASGameModeBase::StartPlay()
 
 void ASGameModeBase::HandleStartingNewPlayer_Implementation(APlayerController* NewPlayer)
 {
-	Super::HandleStartingNewPlayer_Implementation(NewPlayer);
 
 	ASPlayerState* PS = NewPlayer->GetPlayerState<ASPlayerState>();
 	if (PS)
 	{
 		PS->LoadPlayerState(CurrentSaveGame);
 	}
+
+	Super::HandleStartingNewPlayer_Implementation(NewPlayer);
 }
 
 void ASGameModeBase::KillAll()
@@ -136,12 +140,12 @@ void ASGameModeBase::SpawnBotTimerElapsed()
 
 	if (ensure(QueryInstance))//这个函数的意思是检查查询实例是否有效
 	{
-		QueryInstance->GetOnQueryFinishedEvent().AddDynamic(this, &ASGameModeBase::OnQueryCompleted);//这个函数的意思是当查询完成时，调用OnQueryCompleted函数来处理查询结果
+		QueryInstance->GetOnQueryFinishedEvent().AddDynamic(this, &ASGameModeBase::OnBotQueryCompleted);//这个函数的意思是当查询完成时，调用OnQueryCompleted函数来处理查询结果
 	}
 
 }
 
-void ASGameModeBase::OnQueryCompleted(UEnvQueryInstanceBlueprintWrapper* QueryInstance, EEnvQueryStatus::Type QueryStatus)
+void ASGameModeBase::OnBotQueryCompleted(UEnvQueryInstanceBlueprintWrapper* QueryInstance, EEnvQueryStatus::Type QueryStatus)
 {
 
 	if (QueryStatus != EEnvQueryStatus::Success)
@@ -156,9 +160,31 @@ void ASGameModeBase::OnQueryCompleted(UEnvQueryInstanceBlueprintWrapper* QueryIn
 	if (Locations.IsValidIndex(0))//这个函数的意思是如果查询结果中有位置，那么就生成一个敌人
 	{
 
-		GetWorld()->SpawnActor<AActor>(MinionClass, Locations[0] + FVector(0,0,80), FRotator::ZeroRotator);//这个函数的意思是生成一个敌人，敌人的类是MinionClass，生成的位置是查询结果中的第一个位置，生成的旋转是零旋转
+		if (MonsterTable)
+		{
+			TArray<FMonsterInfoRow*> Rows;
+			MonsterTable->GetAllRows("", Rows);
 
-		DrawDebugSphere(GetWorld(), Locations[0] + FVector(0, 0, 80), 50.0f, 20, FColor::Blue, false, 60.0f);//绘制一个调试球体在生成敌人的位置，半径为50，分段数为20，颜色为蓝色，不持久化，持续时间为60秒，这个函数可以用来调试和可视化生成敌人的位置
+			// 随机选择一行数据来生成敌人
+			int32 RandomIndex = FMath::RandRange(0, Rows.Num() - 1);
+			FMonsterInfoRow* SelectedRow = Rows[RandomIndex];
+
+			AActor* NewBot = GetWorld()->SpawnActor<AActor>(SelectedRow->MonsterData->MonsterClass, Locations[0] + FVector(0, 0, 80), FRotator::ZeroRotator);//这个函数的意思是生成一个敌人，敌人的类是MinionClass，生成的位置是查询结果中的第一个位置，生成的旋转是零旋转
+			if (NewBot)
+			{
+				LogOnScreen(this, FString::Printf(TEXT("Spawned enemy: %s (%s)"), *GetNameSafe(NewBot), *GetNameSafe(SelectedRow->MonsterData)));
+
+				USActionComponent* ActionComp = Cast<USActionComponent>(NewBot->GetComponentByClass(USActionComponent::StaticClass()));//这个函数的意思是获取敌人身上的动作组件，也就是存储敌人技能的组件
+				if (ActionComp)
+				{
+					for (TSubclassOf<USAction> ActionClass : SelectedRow->MonsterData->Actions)
+					{
+						ActionComp->AddAction(NewBot, ActionClass);//这个函数的意思是给敌人添加技能，参数是敌人和技能类，可以用来生成技能实例并添加到敌人身上
+					}
+				}
+			}
+		}
+
 	}
 }
 

@@ -62,6 +62,9 @@ protected:
 	UFUNCTION(NetMulticast, Reliable)
 	void MulticastHealthChanged(AActor* Instigator, float NewHealth, float Delta);
 
+	UFUNCTION(NetMulticast, Unreliable)
+	void MulticastRageChanged(AActor* Instigator, float NewRage, float Delta);
+
 public:	
 
 	UFUNCTION(BlueprintCallable)
@@ -94,5 +97,6 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Attributes")
 	bool ApplyRage(AActor* InstigatorActor, float Delta);
 
+	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 		
 };

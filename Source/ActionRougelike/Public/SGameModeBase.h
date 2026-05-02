@@ -5,12 +5,44 @@
 #include "CoreMinimal.h"
 #include "GameFramework/GameModeBase.h"
 #include "EnvironmentQuery/EnvQueryTypes.h"
+#include "Engine/DataTable.h"
 #include "SGameModeBase.generated.h"
 
 class UEnvQuery;
 class UEnvQueryInstanceBlueprintWrapper;
 class UCurveFloat;
 class USSaveGame;
+class UDataTable;
+class USMonsterData;
+
+// DataTable Row for spawning monsters in game mode - 数据表行，用于在游戏模式中生成怪物
+USTRUCT(BlueprintType)
+struct FMonsterInfoRow : public FTableRowBase
+{
+	GENERATED_BODY()
+
+public:
+
+	FMonsterInfoRow()
+	{
+		Weight = 1.0f;
+		SpawnCost = 5.0f;
+		KillReward = 10.0f;
+	}
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	USMonsterData* MonsterData;// 这个变量是用来存储生成敌人的数据的，USMonsterData是一个数据资产类，可以用来存储一些数据，比如生成敌人的属性等
+	//TSubclassOf<AActor> MonsterClass;// 这个变量是用来存储生成敌人的类的，TSubclassOf<AActor>是一个模板类，可以用来存储一个类的子类，这样就可以在蓝图中选择一个类来生成敌人
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	float Weight;// 这个变量是用来存储生成敌人的权重的，权重越大，生成这个敌人的概率就越大，这样就可以根据不同的权重来控制生成不同类型的敌人的概率
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	float SpawnCost;// 这个变量是用来存储生成敌人的成本的，成本越高，生成这个敌人的代价就越大，这样就可以根据不同的成本来控制生成不同类型的敌人的数量，比如说生成一个强大的敌人需要更多的成本，那么就可以限制生成这个强大的敌人的数量，从而增加游戏的挑战性
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	float KillReward;// 这个变量是用来存储杀死这个敌人后获得的奖励的，奖励越高，杀死这个敌人后获得的积分就越多，这样就可以根据不同的奖励来控制玩家杀死不同类型的敌人的动机，比如说杀死一个强大的敌人可以获得更多的奖励，那么玩家就会更有动力去杀死这个强大的敌人，从而增加游戏的乐趣
+};
 
 /**
  * 
@@ -28,7 +60,10 @@ protected:
 	USSaveGame* CurrentSaveGame;
 
 	UPROPERTY(EditDefaultsOnly, Category = "AI")
-	TSubclassOf<AActor> MinionClass;// 这个变量是用来存储生成敌人的类的，TSubclassOf<AActor>是一个模板类，可以用来存储一个类的子类，这样就可以在蓝图中选择一个类来生成敌人
+	UDataTable* MonsterTable;// 这个变量是用来存储生成敌人的数据表的，UDataTable是一个数据表类，可以用来存储一些数据，比如生成敌人的属性等
+
+	//UPROPERTY(EditDefaultsOnly, Category = "AI")
+	//TSubclassOf<AActor> MinionClass;// 这个变量是用来存储生成敌人的类的，TSubclassOf<AActor>是一个模板类，可以用来存储一个类的子类，这样就可以在蓝图中选择一个类来生成敌人
 
 	UPROPERTY(EditDefaultsOnly, Category = "AI")
 	UEnvQuery* SpawnBotQuery;// 这个变量是用来存储生成敌人的环境查询的，UEnvQuery是一个环境查询类，可以用来查询游戏世界中的一些信息，比如生成敌人的位置
@@ -54,7 +89,7 @@ protected:
 	void SpawnBotTimerElapsed();// 这个函数用来生成敌人
 
 	UFUNCTION()
-	void OnQueryCompleted(UEnvQueryInstanceBlueprintWrapper* QueryInstance, EEnvQueryStatus::Type QueryStatus);// 这个函数用来处理环境查询的结果，当环境查询完成时会调用这个函数来处理查询结果
+	void OnBotQueryCompleted(UEnvQueryInstanceBlueprintWrapper* QueryInstance, EEnvQueryStatus::Type QueryStatus);// 这个函数用来处理环境查询的结果，当环境查询完成时会调用这个函数来处理查询结果
 	//这个函数的参数分别是：查询实例，查询状态，查询实例是一个环境查询实例的包装类，可以用来获取查询结果，查询状态是一个枚举类型，表示查询的状态，比如成功、失败等
 
 	UFUNCTION()

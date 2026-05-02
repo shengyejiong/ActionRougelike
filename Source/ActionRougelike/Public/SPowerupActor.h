@@ -15,17 +15,17 @@ class ACTIONROUGELIKE_API ASPowerupActor : public AActor, public ISGameplayInter
 {
 	GENERATED_BODY()
 	
-public:	
-	// Sets default values for this actor's properties
-	ASPowerupActor();
 
 protected:
 
+	UPROPERTY(ReplicatedUsing="OnRep_IsActive")
+	bool bIsActive;
+
+	UFUNCTION()
+	void OnRep_IsActive();
+
 	UPROPERTY(EditAnywhere, Category = "Powerup")
 	float RespawnTime;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Components")
-	UStaticMeshComponent* MeshComp;
 
 	FTimerHandle TimerHandle_RespawnTimer;// ¼ÆÊ±Æ÷¾ä±ú
 
@@ -39,10 +39,18 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = "Components")
 	USphereComponent* SphereComp;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Components")
+	UStaticMeshComponent* MeshComp;
 
 public:
 
 	void Interact_Implementation(APawn* InstigatorPawn) override;
+
+	FText GetInteractText_Implementation(APawn* InstigatorPawn);
+
+public:
+
+	ASPowerupActor();
 
 
 };

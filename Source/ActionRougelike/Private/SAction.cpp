@@ -38,6 +38,14 @@ void USAction::StartAction_Implementation(AActor* Instigator)
 
 	RepData.bIsRunning = true;//将bIsRunning设置为true，表示这个动作正在运行
 	RepData.Instigator = Instigator;//将Instigator存储在RepData中，这样我们就可以在网络中同步这个信息
+
+	//只有在服务器上才会记录这个动作开始的时间，因为只有服务器才是这个动作的权威者，客户端只是从服务器同步这个状态
+	if (GetOwningComponent()->GetOwnerRole() == ROLE_Authority)
+	{
+		TimeStarted = GetWorld()->TimeSeconds;//记录这个动作开始的时间，这样我们就可以在后续的逻辑中根据这个时间来做一些处理，比如计算这个动作已经持续了多久等等
+	}
+
+	GetOwningComponent()->OnActionStarted.Broadcast(GetOwningComponent(), this);//在动作开始时，广播一个事件，通知其他系统这个动作已经开始了，这样其他系统就可以根据这个事件来做一些反应，比如播放一个动画或者触发一个特效等等
 }
 
 void USAction::StopAction_Implementation(AActor* Instigator)
@@ -53,6 +61,7 @@ void USAction::StopAction_Implementation(AActor* Instigator)
 	RepData.bIsRunning = false;//将bIsRunning设置为false，表示这个动作已经停止运行
 	RepData.Instigator = Instigator;//将Instigator存储在RepData中，这样我们就可以在网络中同步这个信息
 
+	GetOwningComponent()->OnActionStopped.Broadcast(GetOwningComponent(), this);//在动作停止时，广播一个事件，通知其他系统这个动作已经停止了，这样其他系统就可以根据这个事件来做一些反应，比如停止一个动画或者触发一个特效等等
 }
 
 UWorld* USAction::GetWorld() const
@@ -94,6 +103,7 @@ bool USAction::IsRunning() const
 	return RepData.bIsRunning;//返回bIsRunning的值，表示这个动作是否正在运行
 }
 
+
 /*
 	这个函数是用来告诉UE这个类中有哪些属性需要在网络中同步的
 	在这个函数中，我们调用了DOREPLIFETIME宏来告诉UE需要同步bIsRunning这个属性
@@ -105,5 +115,6 @@ void USAction::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLi
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(USAction, RepData);
+	DOREPLIFETIME(USAction, TimeStarted);
 	DOREPLIFETIME(USAction, ActionComp);
 }

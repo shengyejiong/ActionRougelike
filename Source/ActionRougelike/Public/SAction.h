@@ -36,6 +36,9 @@ class ACTIONROUGELIKE_API USAction : public UObject
 	
 protected:
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI")
+	TSoftObjectPtr<UTexture2D> Icon;//这个属性是用来在UI中显示这个动作的图标的，TSoftObjectPtr是一个软对象指针，可以用来存储一个对象的引用，这样就可以在需要的时候加载这个对象，而不是在游戏开始时就加载所有的对象，这样可以节省内存和加载时间
+
 	UPROPERTY(Replicated)//这个属性是用来在运行时存储这个动作所属的组件的，这样我们就可以通过这个组件来访问角色的Tag或者其他属性
 	USActionComponent* ActionComp;
 
@@ -52,6 +55,9 @@ protected:
 	FActionRepData RepData;
 	//bool bIsRunning;//记录动作是否正在进行
 
+	UPROPERTY(Replicated)
+	float TimeStarted;
+
 	UFUNCTION()
 	void OnRep_RepData();
 
@@ -64,6 +70,7 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Action")
 	bool IsRunning() const;//这个函数是用来检查这个动作是否正在运行的，返回一个布尔值表示是否正在运行
+
 
 	UFUNCTION(BlueprintNativeEvent, Category = "Action")
 	bool CanStart(AActor* Instigator) const;//这个函数是用来检查这个动作是否可以被执行的，传入一个角色作为参数，返回一个布尔值表示是否可以执行这个动作

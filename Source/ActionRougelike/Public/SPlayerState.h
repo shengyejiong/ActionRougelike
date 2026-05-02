@@ -20,8 +20,11 @@ class ACTIONROUGELIKE_API ASPlayerState : public APlayerState
 
 protected:
 
-	UPROPERTY(EditDefaultsOnly, Category = "Credits")
+	UPROPERTY(EditDefaultsOnly,ReplicatedUsing="OnRep_Credits", Category = "Credits")
 	int32 Credits;//这是玩家的货币，可以用来购买物品
+
+	UFUNCTION()
+	void OnRep_Credits(int32 OldCredits);//这是一个函数，当Credits的值发生变化时会被调用，参数OldCredits是变化前的Credits的值
 	
 public:
 
@@ -42,5 +45,8 @@ public:
 
 	UFUNCTION(BlueprintNativeEvent)
 	void LoadPlayerState(USSaveGame* SaveObject);
+
+	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
 
 };

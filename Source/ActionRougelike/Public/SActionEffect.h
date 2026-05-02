@@ -39,6 +39,9 @@ protected:
 
 public:
 
+	UFUNCTION(BlueprintCallable, Category = "Action")
+	float GetTimeRemaining() const;//这个函数是用来获取这个动作剩余的时间的，返回一个浮点数表示剩余的时间
+
 	USActionEffect();
 
 };

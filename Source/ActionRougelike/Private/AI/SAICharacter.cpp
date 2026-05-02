@@ -118,20 +118,28 @@ void ASAICharacter::OnPawnSeen(APawn* Pawn)
 	{
 		SetTargetActor(Pawn);//当PawnSensingComp组件感知到一个Pawn时，会调用OnPawnSeen函数，在这个函数中会调用SetTargetActor函数将感知到的Pawn设置为目标角色，这样行为树中的任务就可以从黑板中获取目标角色的信息来执行相应的行为。
 
-		USWorldUserWidget* NewWidget = CreateWidget<USWorldUserWidget>(GetWorld(), SpottedWidgetClass);
-		if (NewWidget)
-		{
-			NewWidget->AttachedActor = this;//这个函数是用来将小部件绑定到一个角色上的，这样小部件就会跟随角色移动，并且可以在小部件中获取角色的信息来更新显示。这里将NewWidget绑定到当前角色上，这样当AI角色感知到玩家时，"PLAYER SPOTTED"的小部件就会跟随AI角色移动，并且可以在小部件中获取角色的信息来更新显示。
-
-			NewWidget->AddToViewport(10);//这个函数是用来将小部件添加到视口中的，这样就可以在游戏中看到这个小部件了。这里将NewWidget添加到视口中，并且设置ZOrder为10，这样就会显示"PLAYER SPOTTED"的小部件，并且它会在其他UI元素的上方显示。
-		}
+		MulticastPawnSeen();
 
 	}
-
-
-
 
 	//DrawDebugString(GetWorld(), GetActorLocation(), "PLAYER SPOTTED", nullptr, FColor::White, 4.0f, true);//这个函数是绘制一个调试字符串在游戏世界中，位置为当前角色的位置，文本内容为"PLAYER SPOTTED"，颜色为白色，持续时间为4秒，是否在屏幕上显示为true。这个函数可以用来调试和可视化AI角色的感知状态。
 }
 
 
+/**
+ * @brief 多播RPC函数 - AI发现目标 pawn
+ * 服务器调用，同步广播到所有客户端执行
+ * 功能：在当前AI角色头顶显示“被发现/警告”世界空间UI
+ */
+void ASAICharacter::MulticastPawnSeen_Implementation()
+{
+	// 创建世界空间UI（头顶警告/感叹号）
+	USWorldUserWidget* NewWidget = CreateWidget<USWorldUserWidget>(GetWorld(), SpottedWidgetClass);
+	if (NewWidget)
+	{
+		// 将UI附加到当前AI Actor，实现跟随效果
+		NewWidget->AttachedActor = this;
+		// 将UI添加到视口，层级10确保优先显示
+		NewWidget->AddToViewport(10);
+	}
+}

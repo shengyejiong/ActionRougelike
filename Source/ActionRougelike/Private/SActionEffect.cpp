@@ -3,6 +3,7 @@
 
 #include "SActionEffect.h"
 #include "SActionComponent.h"
+#include "GameFramework/GameStateBase.h"
 
 
 USActionEffect::USActionEffect()
@@ -52,6 +53,19 @@ void USActionEffect::StopAction_Implementation(AActor* Instigator)
 		Comp->RemoveAction(this);//从组件中移除这个效果，这样就不会再对角色产生影响了
 	}
 }
+
+float USActionEffect::GetTimeRemaining() const
+{
+	AGameStateBase* GS = GetWorld()->GetGameState<AGameStateBase>();//获取游戏状态对象，这个对象中包含了一个函数可以获取服务器的世界时间
+	if (GS)
+	{
+		float EndTime = TimeStarted + Duration;
+		return EndTime - GS->GetServerWorldTimeSeconds();//计算这个效果剩余的时间，返回一个浮点数表示剩余的时间
+	}
+
+	return Duration;
+}
+
 
 void USActionEffect::ExecutePeriodicEffect_Implementation(AActor* Instigator)
 {

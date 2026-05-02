@@ -126,6 +126,13 @@ void USAttributeComponent::MulticastHealthChanged_Implementation(AActor* Instiga
 	OnHealthChanged.Broadcast(Instigator, this, NewHealth, Delta);
 }
 
+
+
+void USAttributeComponent::MulticastRageChanged_Implementation(AActor* Instigator, float NewRage, float Delta)
+{
+	OnRageChanged.Broadcast(Instigator, this, NewRage, Delta);
+}
+
 // 这个函数的意思是重写GetLifetimeReplicatedProps函数来指定哪些属性需要被复制到客户端，这样客户端就可以正确地显示和使用这些属性
 void USAttributeComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {

@@ -4,6 +4,7 @@
 #include "SPowerupActor.h"
 #include "Components/SphereComponent.h"
 #include "Components/StaticMeshComponent.h"
+#include "Net/UnrealNetwork.h"
 
 // Sets default values
 ASPowerupActor::ASPowerupActor()
@@ -17,6 +18,7 @@ ASPowerupActor::ASPowerupActor()
 	MeshComp->SetupAttachment(RootComponent);
 
 	RespawnTime = 10.0f;
+	bIsActive = true;
 
 	SetReplicates(true);//设置这个Actor可以被复制到客户端，这样客户端才能看到这个Actor
 }
@@ -24,6 +26,12 @@ ASPowerupActor::ASPowerupActor()
 void ASPowerupActor::Interact_Implementation(APawn* InstigatorPawn)
 {
 	//这里可以添加一些逻辑，比如给玩家增加能力或者道具等
+}
+
+FText ASPowerupActor::GetInteractText_Implementation(APawn* InstigatorPawn)
+{
+
+	return FText::GetEmpty();//返回一个空的文本，因为这个道具没有交互文本
 }
 
 void ASPowerupActor::ShowPowerup()
@@ -47,4 +55,16 @@ void ASPowerupActor::SetPowerupState(bool bNewIsActive)
 
 }
 
+void ASPowerupActor::OnRep_IsActive()
+{
+	SetActorEnableCollision(bIsActive);
 
+	RootComponent->SetVisibility(bIsActive, true);
+}
+
+void ASPowerupActor::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(ASPowerupActor, bIsActive);//注册bIsActive变量为需要网络同步的属性，这样当服务器修改bIsActive的值时，客户端也会收到更新
+}

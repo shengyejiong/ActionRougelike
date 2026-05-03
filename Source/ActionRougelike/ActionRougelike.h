@@ -4,6 +4,8 @@
 
 #include "CoreMinimal.h"
 
+DECLARE_STATS_GROUP(TEXT("STANFORD_Game"), STATGROUP_STANFORD, STATCAT_Advanced);// 定义一个统计组，名称为"STANFORD_Game"，用于在性能分析工具中组织相关的统计数据
+
 /*
 	这个函数是一个实用函数，用于在屏幕上显示调试信息
 	参数说明：

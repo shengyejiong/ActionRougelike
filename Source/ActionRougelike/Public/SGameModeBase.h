@@ -31,7 +31,7 @@ public:
 	}
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	USMonsterData* MonsterData;// 这个变量是用来存储生成敌人的数据的，USMonsterData是一个数据资产类，可以用来存储一些数据，比如生成敌人的属性等
+	FPrimaryAssetId MonsterId;// 这个变量是用来存储生成敌人的数据的，FPrimaryAssetId是一个主资产ID类，可以用来存储一个主资产的ID，这样就可以在蓝图中选择一个主资产来生成敌人，主资产可以是一个数据资产，也可以是一个蓝图类等，这样就可以根据不同的主资产来生成不同类型的敌人
 	//TSubclassOf<AActor> MonsterClass;// 这个变量是用来存储生成敌人的类的，TSubclassOf<AActor>是一个模板类，可以用来存储一个类的子类，这样就可以在蓝图中选择一个类来生成敌人
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
@@ -87,6 +87,8 @@ protected:
 
 	UFUNCTION()
 	void SpawnBotTimerElapsed();// 这个函数用来生成敌人
+
+	void OnMonsterLoaded(FPrimaryAssetId LoadedId, FVector SpawnLocation);//这个函数用来处理生成敌人的事件，当一个敌人被生成时会调用这个函数来处理相关逻辑，比如增加得分、生成掉落物等，这个函数的参数分别是：加载的主资产ID，生成位置，加载的主资产ID是一个主资产ID类，可以用来获取生成敌人的数据，生成位置是一个向量类，可以用来指定生成敌人的位置
 
 	UFUNCTION()
 	void OnBotQueryCompleted(UEnvQueryInstanceBlueprintWrapper* QueryInstance, EEnvQueryStatus::Type QueryStatus);// 这个函数用来处理环境查询的结果，当环境查询完成时会调用这个函数来处理查询结果

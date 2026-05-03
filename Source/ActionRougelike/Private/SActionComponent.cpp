@@ -8,6 +8,8 @@
 #include "Engine/ActorChannel.h"
 
 
+DECLARE_CYCLE_STAT(TEXT("StartActionByName"), STAT_StartActionByName, STATGROUP_STANFORD);//这个宏是用来声明一个性能统计的，传入三个参数，第一个参数是这个统计的名字，第二个参数是这个统计的显示名字，第三个参数是这个统计所属的组，这样我们就可以在性能分析工具中看到这个统计的信息了，在这个函数中，我们会在调用StartActionByName函数的时候记录这个统计，这样我们就可以知道这个函数的性能表现了
+
 // Sets default values for this component's properties
 USActionComponent::USActionComponent()
 {
@@ -38,7 +40,19 @@ void USActionComponent::BeginPlay()
 	
 }
 
+void USActionComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	TArray<USAction*> ActionsCopy = Actions;//创建一个动作数组的副本，包含当前动作数组中的所有动作对象，这样我们就可以在遍历这个副本的时候安全地修改原来的动作数组了，如果我们直接在遍历原来的动作数组的时候修改它，可能会导致一些问题，比如我们在遍历的时候移除了一些动作对象，这样就会导致遍历的过程中出现一些错误或者崩溃，所以我们需要创建一个副本来避免这些问题
+	for (USAction* Action : ActionsCopy)
+	{
+		if (Action && Action->IsRunning())
+		{
+			Action->StopAction(GetOwner());//如果这个动作对象存在，并且正在运行中，就调用这个动作的停止函数，传入这个组件所属的角色作为参数，这样就可以确保当这个组件被销毁的时候，所有正在运行的动作都能够正确地停止了，这样就不会导致一些问题，比如当一个角色被销毁的时候，它的动作对象还在运行中，这样可能会导致一些错误或者崩溃，所以我们需要确保当这个组件被销毁的时候，所有正在运行的动作都能够正确地停止了
+		}
+	}
 
+	Super::EndPlay(EndPlayReason);
+}
 
 // Called every frame
 void USActionComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
@@ -105,6 +119,8 @@ void USActionComponent::RemoveAction(USAction* ActionToRemove)
 
 bool USActionComponent::StartActionByName(AActor* Instigator, FName ActionName)
 {
+	SCOPE_CYCLE_COUNTER(STAT_StartActionByName);//这个宏是用来记录这个函数的性能统计的，传入我们之前声明的那个统计的名字，这样当这个函数被调用的时候，就会记录这个统计的信息了，这样我们就可以在性能分析工具中看到这个函数的性能表现了
+
 	for (USAction* Action : Actions)//遍历动作数组，找到名字和传入的名字一样的动作
 	{
 		if (Action && Action->ActionName == ActionName)
@@ -121,6 +137,9 @@ bool USActionComponent::StartActionByName(AActor* Instigator, FName ActionName)
 			{
 				ServerStartAction(Instigator, ActionName);
 			}
+
+			// 记录一个书签，包含这个动作的名字，这样我们就可以在性能分析工具中看到这个书签的信息了，这对于调试和优化这个函数的性能来说是非常有帮助的
+			TRACE_BOOKMARK(TEXT("StartAction::%s"), *GetNameSafe(Action));
 
 			Action->StartAction(Instigator);
 			return true;

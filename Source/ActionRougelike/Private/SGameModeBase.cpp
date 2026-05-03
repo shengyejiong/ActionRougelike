@@ -19,6 +19,7 @@
 #include "SMonsterData.h"
 #include "../ActionRougelike.h"
 #include "SActionComponent.h"
+#include <Engine/AssetManager.h>
 
 //这个变量的意思是创建一个控制台变量，名字是su.SpawnBots，默认值是false，帮助信息是Enable spawning of bots via timer，这个变量的作用是用来控制是否启用定时生成敌人的功能的，如果这个变量的值是false，那么就不会启用定时生成敌人的功能了
 static TAutoConsoleVariable<bool> CVarSpawnBots(TEXT("su.SpawnBots"), false, TEXT("Enable spawning of bots via timer"), ECVF_Cheat);
@@ -145,6 +146,7 @@ void ASGameModeBase::SpawnBotTimerElapsed()
 
 }
 
+
 void ASGameModeBase::OnBotQueryCompleted(UEnvQueryInstanceBlueprintWrapper* QueryInstance, EEnvQueryStatus::Type QueryStatus)
 {
 
@@ -169,24 +171,52 @@ void ASGameModeBase::OnBotQueryCompleted(UEnvQueryInstanceBlueprintWrapper* Quer
 			int32 RandomIndex = FMath::RandRange(0, Rows.Num() - 1);
 			FMonsterInfoRow* SelectedRow = Rows[RandomIndex];
 
-			AActor* NewBot = GetWorld()->SpawnActor<AActor>(SelectedRow->MonsterData->MonsterClass, Locations[0] + FVector(0, 0, 80), FRotator::ZeroRotator);//这个函数的意思是生成一个敌人，敌人的类是MinionClass，生成的位置是查询结果中的第一个位置，生成的旋转是零旋转
+			UAssetManager* Manager = UAssetManager::GetIfValid();//这个函数的意思是获取一个有效的资产管理器实例，资产管理器是用来管理游戏中的资源的，可以用来加载和卸载资源，如果没有有效的资产管理器实例，那么就返回nullptr了
+			if (Manager)
+			{
+				LogOnScreen(this, "Loading monster...", FColor::Green);
+
+				TArray<FName> Bundles;//这个变量的意思是存储要加载的资源包的名字，资源包是用来组织和管理资源的，可以用来批量加载和卸载资源
+				FStreamableDelegate Delegate = FStreamableDelegate::CreateUObject(this, &ASGameModeBase::OnMonsterLoaded, SelectedRow->MonsterId, Locations[0]);
+				Manager->LoadPrimaryAsset(SelectedRow->MonsterId, Bundles, Delegate);
+			}
+
+		}
+
+	}
+}
+
+void ASGameModeBase::OnMonsterLoaded(FPrimaryAssetId LoadedId, FVector SpawnLocation)
+{
+	LogOnScreen(this, "Finished Loading.", FColor::Green);
+
+	UAssetManager* Manager = UAssetManager::GetIfValid();//这个函数的意思是获取一个有效的资产管理器实例，资产管理器是用来管理游戏中的资源的，可以用来加载和卸载资源，如果没有有效的资产管理器实例，那么就返回nullptr了
+	if (Manager)
+	{
+		USMonsterData* MonsterData = Cast<USMonsterData>(Manager->GetPrimaryAssetObject(LoadedId));//这个函数的意思是根据加载的主资产ID，获取生成敌人的数据，主资产ID是一个主资产ID类，可以用来获取生成敌人的数据，获取到的数据是一个USMonsterData类的实例，这个类是用来存储生成敌人的数据的，比如生成敌人的类、生成敌人的技能等
+
+		if (MonsterData)
+		{
+			AActor* NewBot = GetWorld()->SpawnActor<AActor>(MonsterData->MonsterClass, SpawnLocation + FVector(0, 0, 80), FRotator::ZeroRotator);//这个函数的意思是生成一个敌人，敌人的类是MinionClass，生成的位置是查询结果中的第一个位置，生成的旋转是零旋转
 			if (NewBot)
 			{
-				LogOnScreen(this, FString::Printf(TEXT("Spawned enemy: %s (%s)"), *GetNameSafe(NewBot), *GetNameSafe(SelectedRow->MonsterData)));
+				LogOnScreen(this, FString::Printf(TEXT("Spawned enemy: %s (%s)"), *GetNameSafe(NewBot), *GetNameSafe(MonsterData)));
 
 				USActionComponent* ActionComp = Cast<USActionComponent>(NewBot->GetComponentByClass(USActionComponent::StaticClass()));//这个函数的意思是获取敌人身上的动作组件，也就是存储敌人技能的组件
 				if (ActionComp)
 				{
-					for (TSubclassOf<USAction> ActionClass : SelectedRow->MonsterData->Actions)
+					for (TSubclassOf<USAction> ActionClass : MonsterData->Actions)
 					{
 						ActionComp->AddAction(NewBot, ActionClass);//这个函数的意思是给敌人添加技能，参数是敌人和技能类，可以用来生成技能实例并添加到敌人身上
 					}
 				}
 			}
-		}
 
+		}
 	}
 }
+
+
 
 void ASGameModeBase::OnPowerupSpawnQueryCompleted(UEnvQueryInstanceBlueprintWrapper* QueryInstance, EEnvQueryStatus::Type QueryStatus)
 {

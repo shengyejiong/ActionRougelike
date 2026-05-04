@@ -43,6 +43,12 @@ void ASGameModeBase::InitGame(const FString& MapName, const FString& Options, FS
 {
 	Super::InitGame(MapName, Options, ErrorMessage);
 
+	FString SelectedSaveSlot = UGameplayStatics::ParseOption(Options, "SaveGame");//这个函数的意思是从选项字符串中解析出一个叫做SaveGame的选项的值，这个值就是玩家选择的保存游戏数据的槽位名称，如果没有这个选项，那么就使用默认的SlotName变量的值来作为保存游戏数据的槽位名称
+	if (SelectedSaveSlot.Len() > 0)
+	{
+		SlotName = SelectedSaveSlot;
+	}
+
 	LoadSaveGame();
 }
 

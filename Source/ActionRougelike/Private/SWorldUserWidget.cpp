@@ -19,8 +19,9 @@ void USWorldUserWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTim
 	}
 
 	FVector2D ScreenPosition;//屏幕位置
+	bool bIsOnScreen = UGameplayStatics::ProjectWorldToScreen(GetOwningPlayer(), AttachedActor->GetActorLocation() + WorldOffset, ScreenPosition);//这个函数是用来将世界坐标转换为屏幕坐标的，它接受三个参数：第一个参数是获取当前玩家控制器的函数，第二个参数是要转换的世界坐标，这里是绑定的Actor的位置加上一个偏移量，第三个参数是一个引用参数，用来存储转换后的屏幕坐标。这个函数会返回一个布尔值，表示转换是否成功，如果成功了，那么屏幕坐标就会被存储在ScreenPosition变量中。
 
-	if (UGameplayStatics::ProjectWorldToScreen(GetOwningPlayer(), AttachedActor->GetActorLocation() + WorldOffset, ScreenPosition))//将世界坐标转换为屏幕坐标
+	if (bIsOnScreen)//将世界坐标转换为屏幕坐标
 	{
 		float Scale = UWidgetLayoutLibrary::GetViewportScale(this);//获取视口缩放比例
 
@@ -31,5 +32,10 @@ void USWorldUserWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTim
 			ParentSizeBox->SetRenderTranslation(ScreenPosition);//设置SizeBox组件的渲染平移，使其在屏幕上正确显示
 
 		}
+	}
+
+	if (ParentSizeBox)
+	{
+		ParentSizeBox->SetVisibility(bIsOnScreen ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);//根据是否在屏幕上设置SizeBox组件的可见性，如果在屏幕上就设置为HitTestInvisible，否则设置为Collapsed，这样就可以根据Actor是否在屏幕上来显示或者隐藏血量条的小部件了。
 	}
 }

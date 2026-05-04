@@ -26,7 +26,7 @@ ASAICharacter::ASAICharacter()
 
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 
-	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Ignore);//这个函数是用来设置角色的胶囊组件对世界动态物体的碰撞响应为忽略，这样角色就不会与世界动态物体发生碰撞了，可以避免一些不必要的碰撞检测和物理反应，提高性能。
+	//GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Ignore);//这个函数是用来设置角色的胶囊组件对世界动态物体的碰撞响应为忽略，这样角色就不会与世界动态物体发生碰撞了，可以避免一些不必要的碰撞检测和物理反应，提高性能。
 	GetMesh()->SetGenerateOverlapEvents(true);//这个函数是用来设置角色的网格组件生成重叠事件的，这样当角色与其他物体发生重叠时，就会触发重叠事件，可以在代码中监听这些事件来实现一些功能，比如感知、攻击等。
 
 	TimeToHitParamName = "TimeToHit";//这个变量是一个浮点数，表示在角色的材质上设置的参数

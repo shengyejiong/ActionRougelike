@@ -6,7 +6,7 @@
 
 ## Project Overview
 
-- Engine: Unreal Engine 5.0
+- Engine: Unreal Engine 5.0.3
 - Language: C++
 - Project Type: Third-person action roguelike prototype
 - Purpose: Learning Unreal Engine gameplay programming and project structure
@@ -40,7 +40,7 @@
 
 ## Running the Project
 
-1. 使用 Unreal Engine 5.0 打开 `ActionRougelike.uproject`
+1. 使用 Unreal Engine 5.0.3 打开 `ActionRougelike.uproject`
 2. 等待工程生成并编译完成
 3. 从编辑器内启动 Play 进行测试
 
